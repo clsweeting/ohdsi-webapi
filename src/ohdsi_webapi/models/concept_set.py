@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ConceptSet(BaseModel):
@@ -21,26 +21,26 @@ class ConceptSetItem(BaseModel):
     """A concept set item as returned by /conceptset/{id}/items endpoint."""
 
     id: int
-    conceptSetId: int
-    conceptId: int
-    isExcluded: int  # 0 or 1 in API
-    includeDescendants: int  # 0 or 1 in API
-    includeMapped: int | None = None  # 0 or 1 in API
+    concept_set_id: int = Field(alias="conceptSetId")
+    concept_id: int = Field(alias="conceptId")
+    is_excluded: int = Field(alias="isExcluded")  # 0 or 1 in API
+    include_descendants: int = Field(alias="includeDescendants")  # 0 or 1 in API
+    include_mapped: int | None = Field(default=None, alias="includeMapped")  # 0 or 1 in API
 
     @property
-    def is_excluded(self) -> bool:
-        """Convert isExcluded integer to boolean."""
-        return bool(self.isExcluded)
+    def is_excluded_bool(self) -> bool:
+        """Convert is_excluded integer to boolean."""
+        return bool(self.is_excluded)
 
     @property
-    def include_descendants(self) -> bool:
-        """Convert includeDescendants integer to boolean."""
-        return bool(self.includeDescendants)
+    def include_descendants_bool(self) -> bool:
+        """Convert include_descendants integer to boolean."""
+        return bool(self.include_descendants)
 
     @property
-    def include_mapped(self) -> bool:
-        """Convert includeMapped integer to boolean."""
-        return bool(self.includeMapped) if self.includeMapped is not None else False
+    def include_mapped_bool(self) -> bool:
+        """Convert include_mapped integer to boolean."""
+        return bool(self.include_mapped) if self.include_mapped is not None else False
 
 
 class ResolvedConceptSetItem(BaseModel):

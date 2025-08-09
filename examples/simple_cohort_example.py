@@ -51,7 +51,7 @@ async def example_incremental_cohort():
 
     # Get data source
     sources = client.sources.list()
-    source_key = sources[0].sourceKey  # Use first available
+    source_key = sources[0].source_key  # Use first available
 
     print("Building cohort: Males over 40 with diabetes in last 2 years")
     print("=" * 60)
@@ -70,7 +70,7 @@ async def example_incremental_cohort():
     client.cohorts.poll_generation(c1.id, source_key)
     counts1 = client.cohorts.counts(c1.id)
 
-    print(f"Step 1 - All diabetes patients: {counts1[0].subjectCount:,}")
+    print(f"Step 1 - All diabetes patients: {counts1[0].subject_count:,}")
 
     # 3. Add male filter
     male_expression = client.cohorts.add_gender_filter(base_expression, "male")
@@ -82,7 +82,7 @@ async def example_incremental_cohort():
     client.cohorts.poll_generation(c2.id, source_key)
     counts2 = client.cohorts.counts(c2.id)
 
-    print(f"Step 2 - Male diabetes patients: {counts2[0].subjectCount:,}")
+    print(f"Step 2 - Male diabetes patients: {counts2[0].subject_count:,}")
 
     # 4. Add age filter (40+)
     age_expression = client.cohorts.add_age_filter(male_expression, 40)
@@ -94,7 +94,7 @@ async def example_incremental_cohort():
     client.cohorts.poll_generation(c3.id, source_key)
     counts3 = client.cohorts.counts(c3.id)
 
-    print(f"Step 3 - Male diabetes patients 40+: {counts3[0].subjectCount:,}")
+    print(f"Step 3 - Male diabetes patients 40+: {counts3[0].subject_count:,}")
 
     # 5. Add time window (last 2 years)
     final_expression = client.cohorts.add_time_window_filter(
@@ -108,13 +108,13 @@ async def example_incremental_cohort():
     client.cohorts.poll_generation(c4.id, source_key)
     counts4 = client.cohorts.counts(c4.id)
 
-    print(f"Step 4 - Final cohort: {counts4[0].subjectCount:,}")
+    print(f"Step 4 - Final cohort: {counts4[0].subject_count:,}")
 
     # Show the impact of each filter
     print("\nFilter Impact:")
-    print(f"Male filter: -{counts1[0].subjectCount - counts2[0].subjectCount:,} patients")
-    print(f"Age 40+ filter: -{counts2[0].subjectCount - counts3[0].subjectCount:,} patients")
-    print(f"Time window filter: -{counts3[0].subjectCount - counts4[0].subjectCount:,} patients")
+    print(f"Male filter: -{counts1[0].subject_count - counts2[0].subject_count:,} patients")
+    print(f"Age 40+ filter: -{counts2[0].subject_count - counts3[0].subject_count:,} patients")
+    print(f"Time window filter: -{counts3[0].subject_count - counts4[0].subject_count:,} patients")
 
     return c4
 
@@ -140,7 +140,7 @@ async def example_automated():
     else:
         client = WebApiClient(base_url=base_url)
     sources = client.sources.list()
-    source_key = sources[0].sourceKey
+    source_key = sources[0].source_key
 
     # Define what we want
     diabetes_cs = client.cohorts.create_concept_set(201826, "Diabetes Type 2")

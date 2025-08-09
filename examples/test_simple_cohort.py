@@ -35,8 +35,8 @@ def test_simple_cohort():
             print("❌ No data sources available")
             return
 
-        source_key = sources[0].sourceKey
-        print(f"📊 Using source: {sources[0].sourceName} ({source_key})")
+        source_key = sources[0].source_key
+        print(f"📊 Using source: {sources[0].source_name} ({source_key})")
 
         # Test simple concept search first
         print("\n🔍 Testing concept search...")
@@ -45,13 +45,13 @@ def test_simple_cohort():
             concepts = client.vocabulary.search("hypertension", page_size=1)
             if concepts:
                 concept = concepts[0]
-                print(f"✅ Found concept: {concept.conceptId} - {concept.conceptName}")
+                print(f"✅ Found concept: {concept.concept_id} - {concept.concept_name}")
 
                 # Create a very simple cohort definition using this concept
-                print(f"\n🎯 Creating simple cohort with concept {concept.conceptId}...")
+                print(f"\n🎯 Creating simple cohort with concept {concept.concept_id}...")
 
                 # Create concept set
-                concept_set = client.cohorts.create_concept_set(concept_id=concept.conceptId, name=f"Test Concept{UNIQUE_SUFFIX}")
+                concept_set = client.cohorts.create_concept_set(concept_id=concept.concept_id, name=f"Test Concept{UNIQUE_SUFFIX}")
                 print(f"✅ Created concept set: {concept_set}")
 
                 # Create base expression
@@ -78,10 +78,10 @@ def test_simple_cohort():
             # Fall back to a well-known concept ID (Type 2 diabetes)
             try:
                 concept = client.vocabulary.get_concept(201826)  # Type 2 diabetes
-                print(f"✅ Got concept by ID: {concept.conceptId} - {concept.conceptName}")
+                print(f"✅ Got concept by ID: {concept.concept_id} - {concept.concept_name}")
 
                 # Create simple cohort with this concept
-                concept_set = client.cohorts.create_concept_set(concept_id=concept.conceptId, name=f"Diabetes{UNIQUE_SUFFIX}")
+                concept_set = client.cohorts.create_concept_set(concept_id=concept.concept_id, name=f"Diabetes{UNIQUE_SUFFIX}")
 
                 base_expression = client.cohorts.create_base_cohort_expression([concept_set])
 

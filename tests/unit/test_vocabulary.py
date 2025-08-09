@@ -11,6 +11,6 @@ def test_get_concept():
     client = WebApiClient("http://test/WebAPI")
     try:
         c = client.vocab.get_concept(201826)
-        assert c.conceptName == "Metformin"
+        assert c.concept_name == "Metformin"
     finally:
         client.close()

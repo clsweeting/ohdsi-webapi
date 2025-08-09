@@ -35,7 +35,7 @@ def demonstrate_live_caching():
     print("2. First call to get concept 201826 (Type 2 diabetes):")
     try:
         concept = client.vocabulary.get_concept(201826)
-        print(f"   Got concept: {concept.conceptName}")
+        print(f"   Got concept: {concept.concept_name}")
         print(f"   Cache after: {cache_stats()}")
     except Exception as e:
         print(f"   Error: {e}")
@@ -45,7 +45,7 @@ def demonstrate_live_caching():
     print("3. Second call to same concept (should hit cache):")
     try:
         concept = client.vocabulary.get_concept(201826)
-        print(f"   Got concept: {concept.conceptName}")
+        print(f"   Got concept: {concept.concept_name}")
         print(f"   Cache after: {cache_stats()}")
     except Exception as e:
         print(f"   Error: {e}")
@@ -65,7 +65,7 @@ def demonstrate_live_caching():
     print("5. Force refresh of concept (bypasses cache):")
     try:
         concept = client.vocabulary.get_concept(201826, force_refresh=True)
-        print(f"   Got concept: {concept.conceptName}")
+        print(f"   Got concept: {concept.concept_name}")
         print(f"   Cache after: {cache_stats()}")  # Size should stay same
     except Exception as e:
         print(f"   Error: {e}")
@@ -75,7 +75,7 @@ def demonstrate_live_caching():
     print("6. Get different concept (new cache entry):")
     try:
         concept = client.vocabulary.get_concept(316866)  # Hypertension
-        print(f"   Got concept: {concept.conceptName}")
+        print(f"   Got concept: {concept.concept_name}")
         print(f"   Cache after: {cache_stats()}")
     except Exception as e:
         print(f"   Error: {e}")

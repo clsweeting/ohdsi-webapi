@@ -171,7 +171,7 @@ class CohortService:
         Examples
         --------
         >>> status = client.cohorts.generate(cohort_id=123, source_key="SYNPUF1K")
-        >>> print(f"Generation started: {status.executionId}")
+        >>> print(f"Generation started: {status.execution_id}")
         """
         body = {"id": cohort_id, "sourceKey": source_key}
         data = self._http.post(f"/cohortdefinition/{cohort_id}/generate/{source_key}", json_body=body)
@@ -262,7 +262,7 @@ class CohortService:
         --------
         >>> counts = client.cohorts.counts(123)
         >>> for count in counts:
-        ...     print(f"{count.sourceKey}: {count.subjectCount:,} subjects")
+        ...     print(f"{count.source_key}: {count.subject_count:,} subjects")
         """
         data = self._http.get(f"/cohortdefinition/{cohort_id}/info")
         counts = []
@@ -1141,7 +1141,7 @@ class CohortService:
         self.generate(created_cohort.id, source_key)
         self.poll_generation(created_cohort.id, source_key)
         counts = self.counts(created_cohort.id)
-        subject_count = counts[0].subjectCount if counts else 0
+        subject_count = counts[0].subject_count if counts else 0
         results.append((created_cohort, subject_count))
 
         # Apply inclusion filters incrementally
@@ -1217,7 +1217,7 @@ class CohortService:
             self.generate(created_step.id, source_key)
             self.poll_generation(created_step.id, source_key)
             step_counts = self.counts(created_step.id)
-            step_subject_count = step_counts[0].subjectCount if step_counts else 0
+            step_subject_count = step_counts[0].subject_count if step_counts else 0
             results.append((created_step, step_subject_count))
             step_num += 1
 
@@ -1263,7 +1263,7 @@ class CohortService:
                 self.generate(created_step.id, source_key)
                 self.poll_generation(created_step.id, source_key)
                 step_counts = self.counts(created_step.id)
-                step_subject_count = step_counts[0].subjectCount if step_counts else 0
+                step_subject_count = step_counts[0].subject_count if step_counts else 0
                 results.append((created_step, step_subject_count))
                 step_num += 1
 

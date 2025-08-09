@@ -52,13 +52,13 @@ class TestServiceCacheIntegration:
         # First call - should hit API and cache result
         concept1 = self.client.vocabulary.get_concept(201826)
         assert call_count == 1
-        assert concept1.conceptId == 201826
-        assert concept1.conceptName == "Type 2 diabetes mellitus"
+        assert concept1.concept_id == 201826
+        assert concept1.concept_name == "Type 2 diabetes mellitus"
 
         # Second call - should use cache
         concept2 = self.client.vocabulary.get_concept(201826)
         assert call_count == 1  # No additional API call
-        assert concept2.conceptId == concept1.conceptId
+        assert concept2.concept_id == concept1.concept_id
 
         # Verify cache contents
         contents = cache_contents()
@@ -98,17 +98,17 @@ class TestServiceCacheIntegration:
         # First call
         concept1 = self.client.vocabulary.get_concept(201826)
         assert call_count == 1
-        assert "call 1" in concept1.conceptName
+        assert "call 1" in concept1.concept_name
 
         # Second call with force_refresh
         concept2 = self.client.vocabulary.get_concept(201826, force_refresh=True)
         assert call_count == 2  # Additional API call
-        assert "call 2" in concept2.conceptName
+        assert "call 2" in concept2.concept_name
 
         # Third normal call - should still use original cache (not the force_refresh result)
         concept3 = self.client.vocabulary.get_concept(201826)
         assert call_count == 2  # No additional call
-        assert "call 1" in concept3.conceptName  # Original cached result
+        assert "call 1" in concept3.concept_name  # Original cached result
 
     @respx.mock
     def test_vocabulary_search_caching(self):
@@ -223,7 +223,7 @@ class TestServiceCacheIntegration:
         concept = self.client.vocabulary.get_concept(123)
         concept_set = self.client.concept_sets.get(123)
 
-        assert concept.conceptId == 123
+        assert concept.concept_id == 123
         assert concept_set.id == 123
 
         # Verify separate cache entries

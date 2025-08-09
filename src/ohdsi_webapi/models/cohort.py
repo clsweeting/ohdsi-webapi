@@ -3,14 +3,14 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class CohortDefinition(BaseModel):
     id: int | None = None
     name: str
     description: str | None = None
-    expressionType: str = "SIMPLE_EXPRESSION"
+    expression_type: str = Field(default="SIMPLE_EXPRESSION", alias="expressionType")
     expression: dict[str, Any] | None = None
 
     @field_validator("expression", mode="before")
@@ -27,24 +27,24 @@ class CohortDefinition(BaseModel):
 class CohortGenerationRequest(BaseModel):
     # structure may include various settings; keep flexible
     id: int
-    sourceKey: str
+    source_key: str = Field(alias="sourceKey")
 
 
 class JobStatus(BaseModel):
-    executionId: int | None = None
+    execution_id: int | None = Field(default=None, alias="executionId")
     status: str
-    startTime: str | None = None
-    endTime: str | None = None
+    start_time: str | None = Field(default=None, alias="startTime")
+    end_time: str | None = Field(default=None, alias="endTime")
 
 
 class InclusionRuleStats(BaseModel):
     id: int
     name: str
     count: int
-    personCount: int
+    person_count: int = Field(alias="personCount")
 
 
 class CohortCount(BaseModel):
-    cohortDefinitionId: int
-    subjectCount: int
-    entryCount: int
+    cohort_definition_id: int = Field(alias="cohortDefinitionId")
+    subject_count: int = Field(alias="subjectCount")
+    entry_count: int = Field(alias="entryCount")

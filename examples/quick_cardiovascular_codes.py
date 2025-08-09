@@ -25,10 +25,10 @@ async def find_cardiovascular_codes_quick():
     print(f"Found {len(conditions)} cardiovascular condition concepts:")
 
     for i, concept in enumerate(conditions[:5]):
-        print(f"{i+1}. ID {concept.conceptId}: {concept.conceptName}")
+        print(f"{i+1}. ID {concept.concept_id}: {concept.concept_name}")
 
         # Check how broad this concept is
-        descendants = client.vocabulary.descendants(concept.conceptId)
+        descendants = client.vocabulary.descendants(concept.concept_id)
         print(f"   → Includes {len(descendants)} more specific conditions")
         print()
 
@@ -57,8 +57,8 @@ async def find_cardiovascular_codes_quick():
 
         if best_match:
             found_codes[common_name] = best_match
-            print(f"✅ {common_name.title()}: {best_match.conceptId}")
-            print(f"   Medical name: {best_match.conceptName}")
+            print(f"✅ {common_name.title()}: {best_match.concept_id}")
+            print(f"   Medical name: {best_match.concept_name}")
             print()
 
     print("🛠️  Step 3: How to use these codes")
@@ -68,15 +68,15 @@ async def find_cardiovascular_codes_quick():
     print("For BROAD cardiovascular disease (all types):")
     if conditions:
         broad_concept = conditions[0]  # Usually the most general
-        print(f"   concept_id = {broad_concept.conceptId}  # {broad_concept.conceptName}")
+        print(f"   concept_id = {broad_concept.concept_id}  # {broad_concept.concept_name}")
         print("   include_descendants = True  # Include all subtypes")
 
     print("\nFor SPECIFIC conditions:")
     for name, concept in found_codes.items():
-        print(f"   {name}_concept_id = {concept.conceptId}")
+        print(f"   {name}_concept_id = {concept.concept_id}")
 
     print("\nFor MULTIPLE specific conditions:")
-    concept_ids = [concept.conceptId for concept in found_codes.values()]
+    concept_ids = [concept.concept_id for concept in found_codes.values()]
     print(f"   cvd_concept_ids = {concept_ids}")
 
     return conditions[0] if conditions else None, found_codes

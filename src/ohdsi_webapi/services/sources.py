@@ -31,7 +31,7 @@ class SourcesService:
         >>> client = WebApiClient(base_url="http://localhost:8080/WebAPI")
         >>> sources = client.sources.list()
         >>> for source in sources:
-        ...     print(f"{source.sourceName} ({source.sourceKey})")
+        ...     print(f"{source.source_name} ({source.source_key})")
         """
         data = self._http.get("/source/sources")
         if isinstance(data, list):
@@ -50,6 +50,6 @@ class SourcesService:
         --------
         >>> client = WebApiClient(base_url="http://localhost:8080/WebAPI")
         >>> for source in client.sources.iter():
-        ...     print(f"Processing {source.sourceName}")
+        ...     print(f"Processing {source.source_name}")
         """
         yield from self.list()

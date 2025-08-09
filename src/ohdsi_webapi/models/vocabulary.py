@@ -1,23 +1,23 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Concept(BaseModel):
-    conceptId: int
-    conceptName: str
-    vocabularyId: str | None = None
-    conceptClassId: str | None = None
-    standardConcept: str | None = None
-    conceptCode: str | None = None
-    domainId: str | None = None
-    validStartDate: str | None = None
-    validEndDate: str | None = None
-    invalidReason: str | None = None
+    concept_id: int = Field(alias="conceptId")
+    concept_name: str = Field(alias="conceptName")
+    vocabulary_id: str | None = Field(default=None, alias="vocabularyId")
+    concept_class_id: str | None = Field(default=None, alias="conceptClassId")
+    standard_concept: str | None = Field(default=None, alias="standardConcept")
+    concept_code: str | None = Field(default=None, alias="conceptCode")
+    domain_id: str | None = Field(default=None, alias="domainId")
+    valid_start_date: str | None = Field(default=None, alias="validStartDate")
+    valid_end_date: str | None = Field(default=None, alias="validEndDate")
+    invalid_reason: str | None = Field(default=None, alias="invalidReason")
 
 
 class ConceptAncestor(BaseModel):
-    ancestorConceptId: int
-    descendantConceptId: int
-    minLevelsOfSeparation: int | None = None
-    maxLevelsOfSeparation: int | None = None
+    ancestor_concept_id: int = Field(alias="ancestorConceptId")
+    descendant_concept_id: int = Field(alias="descendantConceptId")
+    min_levels_of_separation: int | None = Field(default=None, alias="minLevelsOfSeparation")
+    max_levels_of_separation: int | None = Field(default=None, alias="maxLevelsOfSeparation")

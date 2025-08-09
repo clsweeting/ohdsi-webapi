@@ -38,17 +38,17 @@ async def find_cardiovascular_codes():
         print("   " + "-" * 40)
 
         for i, concept in enumerate(conditions[:5]):
-            print(f"   {i+1}. ID {concept.conceptId}: {concept.conceptName}")
+            print(f"   {i+1}. ID {concept.concept_id}: {concept.concept_name}")
 
             # Check how many subtypes this includes
-            descendants = client.vocabulary.descendants(concept.conceptId)
+            descendants = client.vocabulary.descendants(concept.concept_id)
             print(f"      → Includes {len(descendants)} more specific conditions")
 
             # Show a few examples
             if descendants and len(descendants) <= 10:
-                print("      → Examples:", ", ".join([d.conceptName for d in descendants[:3]]))
+                print("      → Examples:", ", ".join([d.concept_name for d in descendants[:3]]))
             elif descendants:
-                print("      → Examples:", ", ".join([d.conceptName for d in descendants[:2]]))
+                print("      → Examples:", ", ".join([d.concept_name for d in descendants[:2]]))
                 print(f"        ...and {len(descendants) - 2} more")
             print()
 
@@ -75,7 +75,7 @@ async def find_cardiovascular_codes():
                 if (
                     concept.domainId == "Condition"
                     and concept.standardConcept == "S"
-                    and search_term.lower() in concept.conceptName.lower()
+                    and search_term.lower() in concept.concept_name.lower()
                 ):
                     best_match = concept
                     break
@@ -83,8 +83,8 @@ async def find_cardiovascular_codes():
             if best_match:
                 specific_codes[search_term] = best_match
                 print(f"   ✅ {search_term.replace('_', ' ').title()}")
-                print(f"      ID: {best_match.conceptId}")
-                print(f"      Name: {best_match.conceptName}")
+                print(f"      ID: {best_match.concept_id}")
+                print(f"      Name: {best_match.concept_name}")
                 print()
 
         # Step 6: Show practical usage
@@ -94,21 +94,21 @@ async def find_cardiovascular_codes():
         if conditions:
             broad_concept = conditions[0]
             print("   📊 For BROAD cardiovascular disease studies:")
-            print(f"      concept_id = {broad_concept.conceptId}")
-            print(f"      # {broad_concept.conceptName}")
+            print(f"      concept_id = {broad_concept.concept_id}")
+            print(f"      # {broad_concept.concept_name}")
             print("      # Includes ALL cardiovascular conditions")
             print()
 
         print("   🎯 For SPECIFIC condition studies:")
         for search_term, concept in specific_codes.items():
             condition_name = search_term.replace("_", " ").title()
-            print(f"      {condition_name}: {concept.conceptId}")
+            print(f"      {condition_name}: {concept.concept_id}")
 
         print("\\n   💻 Code example:")
         print("      # Create concept set for broad CVD")
         if conditions:
             print("      cvd_cs = client.cohorts.create_concept_set(")
-            print(f"          concept_id={broad_concept.conceptId},")
+            print(f"          concept_id={broad_concept.concept_id},")
             print("          name='Cardiovascular Disease',")
             print("          include_descendants=True")
             print("      )")
@@ -118,7 +118,7 @@ async def find_cardiovascular_codes():
             first_name = next(iter(specific_codes.keys())).replace("_", " ").title()
             print("\\n      # Create concept set for specific condition")
             print(f"      {first_name.lower().replace(' ', '_')}_cs = client.cohorts.create_concept_set(")
-            print(f"          concept_id={first_code.conceptId},")
+            print(f"          concept_id={first_code.concept_id},")
             print(f"          name='{first_name}'")
             print("      )")
 
@@ -158,7 +158,7 @@ async def demo_cohort_creation():
 
             return
 
-        source_key = sources[0].sourceKey
+        source_key = sources[0].source_key
         print(f"📊 Using data source: {source_key}")
 
         # Create cardiovascular concept set
