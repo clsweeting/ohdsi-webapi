@@ -43,8 +43,9 @@ client.vocabulary.search("diabetes", domain_id="Condition", page_size=50)
 The following methods are automatically cached:
 
 ### High-Value Targets
-- `client.concept_sets.list()` - 10 minute cache (expensive: 20K+ items)
-- `client.concept_sets.get(id)` - 5 minute cache
+- `client.concept_sets.list()` - 1 hour cache (expensive: 20K+ items)
+- `client.concept_sets.get(id)` - 30 minute cache (stable individual sets)
+- `client.concept_sets.resolve(id)` - 30 minute cache (resolved concept lists)
 - `client.vocabulary.get_concept(id)` - 1 hour cache (concepts rarely change)
 - `client.vocabulary.domains()` - 30 minute cache (stable metadata)
 
@@ -57,7 +58,7 @@ client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 # First call: hits API (~10 seconds for 27K concept sets)
 concept_sets = client.concept_sets.list()
 
-# Second call: instant (from cache)
+# Subsequent calls: instant (from cache for 1 hour)
 concept_sets = client.concept_sets.list()  # ~10,000x faster!
 ```
 

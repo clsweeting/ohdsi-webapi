@@ -18,7 +18,7 @@ class ConceptSetService:
     def __init__(self, http: HttpExecutor):
         self._http = http
 
-    @cached_method(ttl_seconds=600)  # 10 minutes for expensive list operation
+    @cached_method(ttl_seconds=3600)  # 1 hour for expensive list operation (20K+ items)
     def list(self, *, force_refresh: bool = False) -> list[ConceptSet]:
         """List all concept sets (metadata only).
 
@@ -118,7 +118,7 @@ class ConceptSetService:
             # Fetch full details on demand
             yield self.get(cs_metadata.id)
 
-    @cached_method(ttl_seconds=300)  # 5 minutes for individual concept sets
+    @cached_method(ttl_seconds=1800)  # 30 minutes for individual concept sets
     def get(self, concept_set_id: int, *, force_refresh: bool = False) -> ConceptSet:
         """Get a concept set by ID with full details including expression.
 
@@ -162,6 +162,7 @@ class ConceptSetService:
         data = self._http.post(f"/conceptset/{concept_set_id}/expression", json_body=expression)
         return data if isinstance(data, dict) else {}
 
+    @cached_method(ttl_seconds=1800)  # 30 minutes for concept set resolution
     def resolve(self, concept_set_id: int) -> list[ConceptSetItem]:
         """Get the concept set items (concepts) in a concept set.
 
