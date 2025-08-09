@@ -136,7 +136,7 @@ class TestServiceCacheIntegration:
             call_count += 1
             return httpx.Response(200, json=search_results)
 
-        respx.get(f"{self.base_url}/vocabulary/search").mock(side_effect=mock_search_response)
+        respx.post(f"{self.base_url}/vocabulary/search/").mock(side_effect=mock_search_response)
 
         # First search
         results1 = self.client.vocabulary.search("diabetes")
@@ -157,8 +157,8 @@ class TestServiceCacheIntegration:
         assert len(contents["entries"]) == 2
 
         cache_keys = [entry["key"] for entry in contents["entries"]]
-        assert 'VocabularyService.search("diabetes", page=1, page_size=20)' in cache_keys
-        assert 'VocabularyService.search("diabetes", domain_id="Condition", page=1, page_size=20)' in cache_keys
+        assert 'VocabularyService.search("diabetes")' in cache_keys
+        assert 'VocabularyService.search("diabetes", domain_id="Condition")' in cache_keys
 
     @respx.mock
     def test_vocabulary_domains_caching(self):
