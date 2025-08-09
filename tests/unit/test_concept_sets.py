@@ -1,6 +1,7 @@
-import respx
 import httpx
+import respx
 from ohdsi_webapi import WebApiClient
+
 
 @respx.mock
 def test_concept_set_crud():

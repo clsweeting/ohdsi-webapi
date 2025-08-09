@@ -1,7 +1,10 @@
 from __future__ import annotations
+
 import time
-from typing import Callable, Optional
+from typing import Callable
+
 from ..exceptions import JobTimeoutError
+
 
 class Poller:
     def __init__(self, interval: float = 2.0, timeout: float = 600.0):

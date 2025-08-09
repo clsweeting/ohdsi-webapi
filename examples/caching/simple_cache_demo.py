@@ -3,6 +3,7 @@ Simple cache inspection demo
 """
 
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -28,10 +29,10 @@ print("Starting with clean cache...")
 try:
     domains = client.vocabulary.domains()
     print(f"✅ Got {len(domains)} vocabulary domains")
-    
+
     concept = client.vocabulary.get_concept(201826)
     print(f"✅ Got concept: {getattr(concept, 'concept_name', 'Unknown')}")
-    
+
 except Exception as e:
     print(f"API call error: {e}")
 
@@ -39,16 +40,16 @@ except Exception as e:
 print("\n📊 Cache contents:")
 try:
     contents = cache_contents()
-    
-    for i, entry in enumerate(contents['entries'], 1):
+
+    for i, entry in enumerate(contents["entries"], 1):
         print(f"{i}. {entry['key']}")
         print(f"   • Type: {entry['data_type']}")
         print(f"   • Age: {entry['created_ago']:.1f}s")
         print(f"   • TTL: {entry['expires_in']:.0f}s")
         print()
-    
-    stats = contents['stats']
+
+    stats = contents["stats"]
     print(f"Total: {stats['size']}/{stats['max_size']} entries")
-    
+
 except Exception as e:
     print(f"Cache inspection error: {e}")

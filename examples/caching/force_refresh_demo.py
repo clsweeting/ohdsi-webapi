@@ -3,31 +3,34 @@ Demo of how force_refresh works in get_concept method
 """
 
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def demo_force_refresh():
     """Demonstrate how force_refresh bypasses the cache."""
-    
+
+    import time
+
     from ohdsi_webapi import WebApiClient
     from ohdsi_webapi.cache import cache_contents, clear_cache
-    import time
-    
+
     base_url = os.getenv("OHDSI_WEBAPI_BASE_URL")
     if not base_url:
         print("❌ OHDSI_WEBAPI_BASE_URL not set")
         return
-    
+
     client = WebApiClient(base_url=base_url)
-    
+
     print("🔄 Force Refresh Demo")
     print("=" * 30)
-    
+
     # Start with clean cache
     clear_cache()
     print("1. Starting with clean cache")
-    
+
     try:
         # First call - will populate cache
         print("\n2. First call (cache miss):")
@@ -35,49 +38,51 @@ def demo_force_refresh():
         concept1 = client.vocabulary.get_concept(201826)
         time1 = time.time() - start
         print(f"   ✅ Retrieved concept in {time1:.3f}s")
-        
+
         # Check cache
         contents = cache_contents()
         print(f"   📊 Cache now has {contents['stats']['size']} entry")
-        if contents['entries']:
+        if contents["entries"]:
             print(f"   🔑 Key: {contents['entries'][0]['key']}")
-        
+
         # Second call - should hit cache
         print("\n3. Second call (cache hit):")
         start = time.time()
-        concept2 = client.vocabulary.get_concept(201826)
+        client.vocabulary.get_concept(201826)
         time2 = time.time() - start
         print(f"   ⚡ Retrieved concept in {time2:.3f}s (from cache)")
         print(f"   🚀 Speed improvement: {time1/time2:.1f}x faster")
-        
+
         # Third call with force_refresh=True
         print("\n4. Third call with force_refresh=True:")
         start = time.time()
         concept3 = client.vocabulary.get_concept(201826, force_refresh=True)
         time3 = time.time() - start
         print(f"   🔄 Retrieved concept in {time3:.3f}s (bypassed cache)")
-        print(f"   📡 Fresh API call (similar timing to first call)")
-        
+        print("   📡 Fresh API call (similar timing to first call)")
+
         # Check cache again - should still have only 1 entry
         contents = cache_contents()
-        print(f"\n5. Cache status after force_refresh:")
+        print("\n5. Cache status after force_refresh:")
         print(f"   📊 Cache still has {contents['stats']['size']} entry")
-        print(f"   ℹ️  force_refresh bypassed cache completely")
-        
+        print("   ℹ️  force_refresh bypassed cache completely")
+
         # Verify all concepts are the same
-        print(f"\n6. Data consistency:")
+        print("\n6. Data consistency:")
         print(f"   Concept names match: {getattr(concept1, 'concept_name', 'N/A') == getattr(concept3, 'concept_name', 'N/A')}")
-        
+
     except Exception as e:
         print(f"Error: {e}")
 
+
 def explain_force_refresh_mechanism():
     """Explain the internal mechanics of force_refresh."""
-    
+
     print("\n🔧 How force_refresh Works Internally")
     print("=" * 40)
-    
-    print("""
+
+    print(
+        """
 The @cached_method decorator handles force_refresh as follows:
 
 1. PARAMETER EXTRACTION:
@@ -120,7 +125,9 @@ Key Points:
 • No cache read, no cache write when force_refresh=True
 • Cache key generation excludes force_refresh parameter
 • Ensures consistent cache keys regardless of force_refresh value
-""")
+"""
+    )
+
 
 if __name__ == "__main__":
     explain_force_refresh_mechanism()
