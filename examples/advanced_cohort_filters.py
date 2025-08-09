@@ -64,7 +64,7 @@ async def advanced_filters_demo():
             show_filter_examples(client)
             return
 
-        source_key = sources[0].sourceKey
+        source_key = sources[0].source_key
         print(f"📊 Using data source: {source_key}")
 
         # Define concept sets for comprehensive example

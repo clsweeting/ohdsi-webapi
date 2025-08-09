@@ -36,7 +36,7 @@ async def find_cardiovascular_codes():
     print("-" * 40)
 
     for i, concept in enumerate(cvd_concepts[:10]):
-        print(f"{i+1:2}. ID {concept.conceptId}: {concept.conceptName}")
+        print(f"{i+1:2}. ID {concept.concept_id}: {concept.concept_name}")
         print(f"     Domain: {concept.domainId}, Standard: {concept.standardConcept}")
         print()
 
@@ -49,23 +49,23 @@ async def find_cardiovascular_codes():
     print(f"Found {len(condition_concepts)} standard condition concepts")
 
     # Look for broader terms (shorter names, likely parents)
-    broad_concepts = [c for c in condition_concepts if len(c.conceptName.split()) <= 4 and "disease" in c.conceptName.lower()]
+    broad_concepts = [c for c in condition_concepts if len(c.concept_name.split()) <= 4 and "disease" in c.concept_name.lower()]
 
     print(f"\nBroad cardiovascular concepts ({len(broad_concepts)}):")
     print("-" * 50)
 
     for concept in broad_concepts[:5]:
-        print(f"🎯 {concept.conceptId}: {concept.conceptName}")
+        print(f"🎯 {concept.concept_id}: {concept.concept_name}")
 
         # Check how many descendants this includes
-        descendants = await client.vocabulary.descendants(concept.conceptId)
+        descendants = await client.vocabulary.descendants(concept.concept_id)
         print(f"   → Includes {len(descendants)} more specific conditions")
 
         # Show a few examples
         if descendants:
             examples = descendants[:3]
             for ex in examples:
-                print(f"      • {ex.conceptName}")
+                print(f"      • {ex.concept_name}")
             if len(descendants) > 3:
                 print(f"      • ...and {len(descendants) - 3} more")
         print()
@@ -88,11 +88,11 @@ async def find_cardiovascular_codes():
 
     for search_term, concept in specific_concepts.items():
         print(f"🔸 {search_term.title()}")
-        print(f"   ID: {concept.conceptId}")
-        print(f"   Name: {concept.conceptName}")
+        print(f"   ID: {concept.concept_id}")
+        print(f"   Name: {concept.concept_name}")
 
         # Check descendants
-        descendants = await client.vocabulary.descendants(concept.conceptId)
+        descendants = await client.vocabulary.descendants(concept.concept_id)
         print(f"   Subtypes: {len(descendants)} descendants")
         print()
 
@@ -103,12 +103,12 @@ async def find_cardiovascular_codes():
     print("For BROAD cardiovascular disease studies:")
     if broad_concepts:
         main_cvd = broad_concepts[0]  # Usually "Cardiovascular disease"
-        print(f"✅ Use concept {main_cvd.conceptId}: {main_cvd.conceptName}")
+        print(f"✅ Use concept {main_cvd.concept_id}: {main_cvd.concept_name}")
         print("   → Includes all cardiovascular conditions")
 
     print("\nFor SPECIFIC condition studies:")
     for search_term, concept in specific_concepts.items():
-        print(f"✅ {search_term.title()}: Use concept {concept.conceptId}")
+        print(f"✅ {search_term.title()}: Use concept {concept.concept_id}")
 
     print("\nFor CUSTOM combinations:")
     print("✅ Create concept set with multiple specific conditions")
@@ -193,7 +193,7 @@ async def test_cardiovascular_cohort():
             print("❌ No data sources available for testing")
             return
 
-        source_key = sources[0].sourceKey
+        source_key = sources[0].source_key
         print(f"📊 Using data source: {source_key}")
 
         # Create cardiovascular concept set

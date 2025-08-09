@@ -17,7 +17,7 @@ client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 ## Get a Concept by ID
 ```python
 concept = client.vocab.get_concept(201826)  # Metformin
-print(concept.conceptName, concept.domainId, concept.vocabularyId)
+print(concept.concept_name, concept.domainId, concept.vocabularyId)
 ```
 
 ## Text Search
@@ -25,7 +25,7 @@ Search across vocabularies for matching text.
 ```python
 results = client.vocab.search("metformin", standard_concept="S", domain_id="Drug", page_size=50)
 for c in results:
-    print(c.conceptId, c.conceptName, c.standardConcept)
+    print(c.concept_id, c.concept_name, c.standardConcept)
 ```
 Parameters:
 - `standard_concept`: filter to standard concepts (`"S"`).
@@ -61,7 +61,7 @@ lookup = client.vocab.lookup_identifiers([
     {"identifier": "A10BA02", "vocabularyId": "ATC", "includeMapped": True},
 ])
 for c in lookup:
-    print(c.conceptId, c.conceptName)
+    print(c.concept_id, c.concept_name)
 ```
 Flags:
 - `include_mapped`: include mapped standard concepts for non-standard codes.

@@ -105,8 +105,8 @@ expr = {
     "items": [
         {
             "concept": {
-                "CONCEPT_ID": metformin.conceptId,
-                "CONCEPT_NAME": metformin.conceptName,
+                "CONCEPT_ID": metformin.concept_id,
+                "CONCEPT_NAME": metformin.concept_name,
                 "STANDARD_CONCEPT": metformin.standardConcept,
                 "VOCABULARY_ID": metformin.vocabularyId,
             },

@@ -5,8 +5,8 @@ import pytest
 def test_live_get_concept(live_client):
     """Test getting a known concept."""
     concept = live_client.vocabulary.get_concept(201826)  # Type 2 diabetes mellitus
-    assert concept.conceptName == "Type 2 diabetes mellitus"
-    assert concept.conceptId == 201826
+    assert concept.concept_name == "Type 2 diabetes mellitus"
+    assert concept.concept_id == 201826
     assert concept.domainId == "Condition"
 
 
@@ -27,7 +27,7 @@ def test_live_search(live_client):
     # Test basic search
     results = live_client.vocabulary.search("diabetes", page_size=5)
     assert len(results) > 0
-    assert any("diabetes" in c.conceptName.lower() for c in results)
+    assert any("diabetes" in c.concept_name.lower() for c in results)
 
     # Test search with domain filter
     condition_results = live_client.vocabulary.search("diabetes", domain_id="Condition", page_size=3)

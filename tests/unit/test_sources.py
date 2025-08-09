@@ -14,6 +14,6 @@ def test_list_sources():
     try:
         sources = client.sources.list()
         assert len(sources) == 1
-        assert sources[0].sourceKey == "CDM"
+        assert sources[0].source_key == "CDM"
     finally:
         client.close()

@@ -17,7 +17,7 @@ client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 ## Fetch Existing Cohort Definition
 ```python
 cohort = client.cohorts.get(5)
-print(cohort.name, cohort.expressionType)
+print(cohort.name, cohort.expression_type)
 ```
 The `expression` is a nested structure; this client stores it as a raw `dict`.
 
@@ -55,7 +55,7 @@ Use with caution—irreversible.
 ## Generating a Cohort
 You need a source key (from `client.sources.list()`) for a CDM with a results schema configured.
 ```python
-source_key = client.sources.list()[0].sourceKey
+source_key = client.sources.list()[0].source_key
 status = client.cohorts.generate(cohort_id=cohort.id, source_key=source_key)
 print(status.status)
 ```
@@ -73,14 +73,14 @@ After a successful generation:
 ```python
 stats = client.cohorts.inclusion_rules(cohort_id=cohort.id, source_key=source_key)
 for rule in stats:
-    print(rule.id, rule.name, rule.personCount)
+    print(rule.id, rule.name, rule.person_count)
 ```
 
 ## Counts
 ```python
 counts = client.cohorts.counts(cohort_id=cohort.id)
 for c in counts:
-    print(c.cohortDefinitionId, c.subjectCount, c.entryCount)
+    print(c.cohort_definition_id, c.subject_count, c.entry_count)
 ```
 
 ## Error Handling

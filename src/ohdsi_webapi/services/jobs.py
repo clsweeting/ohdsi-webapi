@@ -35,7 +35,7 @@ class JobsService:
         >>> job = client.cohorts.generate(cohort_id=123, source_key="SYNPUF1K")
         >>>
         >>> # Check job status
-        >>> status = client.jobs.status(job.executionId)
+        >>> status = client.jobs.status(job.execution_id)
         >>> print(f"Job status: {status.status}")
 
         Notes

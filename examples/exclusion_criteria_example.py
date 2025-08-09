@@ -33,7 +33,7 @@ async def exclusion_criteria_example():
             print("No data sources available")
             return
 
-        source_key = sources[0].sourceKey
+        source_key = sources[0].source_key
         print(f"📊 Using data source: {source_key}")
 
         # Step 1: Define concept sets

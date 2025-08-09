@@ -203,7 +203,7 @@ async def build_cohort_incrementally(client, source_key: str):
     await client.cohorts.generate(cohort1.id, source_key)
     status1 = await client.cohorts.poll_generation(cohort1.id, source_key)
     counts1 = await client.cohorts.counts(cohort1.id)
-    print(f"Step 1 - Diabetes patients: {counts1[0].subjectCount if counts1 else 0}")
+    print(f"Step 1 - Diabetes patients: {counts1[0].subject_count if counts1 else 0}")
     
     # Step 2: Add male gender filter
     male_cohort = CohortDefinition(
@@ -215,7 +215,7 @@ async def build_cohort_incrementally(client, source_key: str):
     await client.cohorts.generate(cohort2.id, source_key)
     status2 = await client.cohorts.poll_generation(cohort2.id, source_key)
     counts2 = await client.cohorts.counts(cohort2.id)
-    print(f"Step 2 - Male diabetes patients: {counts2[0].subjectCount if counts2 else 0}")
+    print(f"Step 2 - Male diabetes patients: {counts2[0].subject_count if counts2 else 0}")
     
     # Step 3: Add age filter
     age_cohort = CohortDefinition(
@@ -227,12 +227,12 @@ async def build_cohort_incrementally(client, source_key: str):
     await client.cohorts.generate(cohort3.id, source_key)
     status3 = await client.cohorts.poll_generation(cohort3.id, source_key)
     counts3 = await client.cohorts.counts(cohort3.id)
-    print(f"Step 3 - Male 40+ diabetes patients: {counts3[0].subjectCount if counts3 else 0}")
+    print(f"Step 3 - Male 40+ diabetes patients: {counts3[0].subject_count if counts3 else 0}")
     
     # Get detailed inclusion rule statistics
     inclusion_stats = await client.cohorts.inclusion_rules(cohort3.id, source_key)
     for rule in inclusion_stats:
-        print(f"Inclusion rule '{rule.name}': {rule.personCount} people")
+        print(f"Inclusion rule '{rule.name}': {rule.person_count} people")
     
     return cohort3
 ```
@@ -311,7 +311,7 @@ async def example_incremental_cohort():
     
     # Get your data source
     sources = await client.sources.list()
-    source_key = sources[0].sourceKey  # Use first available source
+    source_key = sources[0].source_key  # Use first available source
     
     # Define what we're looking for
     diabetes_cs = client.cohorts.create_concept_set(201826, "Type 2 Diabetes")
@@ -857,19 +857,19 @@ async def explore_cardiovascular_concepts():
     
     print(f"Found {len(cvd_concepts)} concepts for 'cardiovascular disease':")
     for concept in cvd_concepts[:10]:  # Show first 10
-        print(f"  {concept.conceptId}: {concept.conceptName}")
+        print(f"  {concept.concept_id}: {concept.concept_name}")
         print(f"    Domain: {concept.domainId}, Standard: {concept.standardConcept}")
     
     # Look for high-level parent concepts
-    high_level = [c for c in cvd_concepts if "disease" in c.conceptName.lower() 
-                  and len(c.conceptName.split()) <= 4]
+    high_level = [c for c in cvd_concepts if "disease" in c.concept_name.lower() 
+                  and len(c.concept_name.split()) <= 4]
     
     print(f"\nHigh-level CVD concepts ({len(high_level)}):")
     for concept in high_level:
-        print(f"  {concept.conceptId}: {concept.conceptName}")
+        print(f"  {concept.concept_id}: {concept.concept_name}")
         
         # Check descendants to see scope
-        descendants = await client.vocabulary.descendants(concept.conceptId)
+        descendants = await client.vocabulary.descendants(concept.concept_id)
         print(f"    → {len(descendants)} descendant conditions")
 
 # Example output:
@@ -913,7 +913,7 @@ async def build_cvd_cohort_with_options():
     
     # Option 3: Let user see counts for different approaches
     sources = await client.sources.list()
-    source_key = sources[0].sourceKey
+    source_key = sources[0].source_key
     
     print("🔍 Cardiovascular Disease Cohort Options:")
     print("=" * 50)
@@ -975,14 +975,14 @@ async def interactive_concept_explorer(search_term: str):
     
     print(f"\n🎯 Top condition concepts for '{search_term}':")
     for i, concept in enumerate(standard_conditions[:10]):
-        descendants = await client.vocabulary.descendants(concept.conceptId)
-        print(f"  {i+1}. {concept.conceptName} (ID: {concept.conceptId})")
+        descendants = await client.vocabulary.descendants(concept.concept_id)
+        print(f"  {i+1}. {concept.concept_name} (ID: {concept.concept_id})")
         print(f"     → Includes {len(descendants)} specific conditions")
         
         # Show a few examples
         if descendants:
             examples = descendants[:3]
-            example_names = [d.conceptName for d in examples]
+            example_names = [d.concept_name for d in examples]
             print(f"     → Examples: {', '.join(example_names)}")
             if len(descendants) > 3:
                 print(f"     → ...and {len(descendants) - 3} more")
@@ -1019,7 +1019,7 @@ async def validate_concept_set_size(concept_id: int, source_key: str):
     await client.cohorts.poll_generation(created.id, source_key)
     counts = await client.cohorts.counts(created.id)
     
-    patient_count = counts[0].subjectCount if counts else 0
+    patient_count = counts[0].subject_count if counts else 0
     
     # Clean up test cohort
     await client.cohorts.delete(created.id)
@@ -1036,8 +1036,8 @@ async def suggest_concept_refinement(search_term: str, source_key: str):
     
     for concept in concepts[:5]:  # Test top 5 concepts
         try:
-            count = await validate_concept_set_size(concept.conceptId, source_key)
-            print(f"{concept.conceptName:40} → {count:,} patients")
+            count = await validate_concept_set_size(concept.concept_id, source_key)
+            print(f"{concept.concept_name:40} → {count:,} patients")
             
             # Suggest based on size
             if count > 100000:
@@ -1048,7 +1048,7 @@ async def suggest_concept_refinement(search_term: str, source_key: str):
                 print(f"  ✓  Good size for analysis")
                 
         except Exception as e:
-            print(f"{concept.conceptName:40} → Error: {e}")
+            print(f"{concept.concept_name:40} → Error: {e}")
         
         print()
 ```

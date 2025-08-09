@@ -183,7 +183,7 @@ class ConceptSetService:
         --------
         >>> items = client.concept_sets.resolve(123)
         >>> for item in items:
-        ...     print(f"Concept {item.conceptId}: excluded={item.is_excluded}")
+        ...     print(f"Concept {item.concept_id}: excluded={item.is_excluded}")
         """
         data = self._http.get(f"/conceptset/{concept_set_id}/items")
         if isinstance(data, list):

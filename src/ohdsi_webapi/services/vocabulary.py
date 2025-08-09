@@ -71,7 +71,7 @@ class VocabularyService:
         --------
         >>> # Get a specific concept
         >>> concept = client.vocabulary.get_concept(201826)
-        >>> print(f"{concept.conceptName} ({concept.vocabularyId})")
+        >>> print(f"{concept.concept_name} ({concept.vocabularyId})")
         'Type 2 diabetes mellitus (SNOMED)'
         >>>
         >>> # Force refresh from server
@@ -205,7 +205,7 @@ class VocabularyService:
         >>> # Get all subtypes of diabetes
         >>> diabetes_descendants = client.vocabulary.descendants(201826)
         >>> for desc in diabetes_descendants[:5]:
-        ...     print(f"  {desc.conceptId}: {desc.conceptName}")
+        ...     print(f"  {desc.concept_id}: {desc.concept_name}")
         """
         data = self._http.get(f"/vocabulary/concept/{concept_id}/descendants")
         if isinstance(data, list):
@@ -234,7 +234,7 @@ class VocabularyService:
         >>> # Get related concepts
         >>> related = client.vocabulary.related(201826)
         >>> for rel in related[:5]:
-        ...     print(f"  {rel.conceptId}: {rel.conceptName}")
+        ...     print(f"  {rel.concept_id}: {rel.concept_name}")
         """
         data = self._http.get(f"/vocabulary/concept/{concept_id}/related")
         if isinstance(data, list):

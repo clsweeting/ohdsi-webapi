@@ -33,7 +33,7 @@ def test_connection():
         print("\n📊 Available Sources:")
         sources = client.sources.list()
         for source in sources:
-            print(f"- {source.sourceName} (key: {source.sourceKey})")
+            print(f"- {source.source_name} (key: {source.source_key})")
 
         # Test vocabulary
         print("\n📊 Vocabulary Info:")
@@ -51,7 +51,7 @@ def test_connection():
             concepts = client.vocabulary.search("diabetes", page_size=3)
             print(f"Found {len(concepts)} diabetes concepts:")
             for concept in concepts[:3]:
-                print(f"  - {concept.conceptId}: {concept.conceptName}")
+                print(f"  - {concept.concept_id}: {concept.concept_name}")
         except Exception as e:
             print(f"Concept search error: {e}")
 

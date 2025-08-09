@@ -45,7 +45,7 @@ print(f"Filtered to {len(conditions)} standard condition concepts")
 
 # Show the top results
 for i, concept in enumerate(conditions[:5]):
-    print(f"{i+1}. ID {concept.conceptId}: {concept.conceptName}")
+    print(f"{i+1}. ID {concept.concept_id}: {concept.concept_name}")
     print(f"   Domain: {concept.domainId}, Standard: {concept.standardConcept}")
 ```
 
@@ -56,13 +56,13 @@ This is the **critical step** - understanding how broad or narrow each concept i
 ```python
 # Check how many subtypes each concept includes
 for concept in conditions[:5]:
-    descendants = await client.vocabulary.descendants(concept.conceptId)
-    print(f"{concept.conceptName}:")
+    descendants = await client.vocabulary.descendants(concept.concept_id)
+    print(f"{concept.concept_name}:")
     print(f"  → Includes {len(descendants)} more specific conditions")
     
     # Show examples of what's included
     if descendants:
-        examples = [d.conceptName for d in descendants[:3]]
+        examples = [d.concept_name for d in descendants[:3]]
         print(f"  → Examples: {', '.join(examples)}")
         if len(descendants) > 3:
             print(f"  → ...and {len(descendants) - 3} more")
@@ -111,14 +111,14 @@ for search_term in specific_searches:
     for concept in search_results:
         if (concept.domainId == 'Condition' and 
             concept.standardConcept == 'S' and
-            search_term.lower() in concept.conceptName.lower()):
+            search_term.lower() in concept.concept_name.lower()):
             best_match = concept
             break
     
     if best_match:
         specific_codes[search_term] = best_match
-        print(f"✅ {search_term.title()}: {best_match.conceptId}")
-        print(f"   {best_match.conceptName}")
+        print(f"✅ {search_term.title()}: {best_match.concept_id}")
+        print(f"   {best_match.concept_name}")
 ```
 
 ### Step 5: Validate Concept Size with Real Data
@@ -145,7 +145,7 @@ async def check_concept_size(concept_id: int, source_key: str):
     await client.cohorts.poll_generation(created.id, source_key)
     counts = await client.cohorts.counts(created.id)
     
-    patient_count = counts[0].subjectCount if counts else 0
+    patient_count = counts[0].subject_count if counts else 0
     
     # Clean up
     await client.cohorts.delete(created.id)
@@ -154,11 +154,11 @@ async def check_concept_size(concept_id: int, source_key: str):
 
 # Test different concept options
 sources = await client.sources.list()
-source_key = sources[0].sourceKey
+source_key = sources[0].source_key
 
 for concept in conditions[:3]:
-    count = await check_concept_size(concept.conceptId, source_key)
-    print(f"{concept.conceptName}: {count:,} patients")
+    count = await check_concept_size(concept.concept_id, source_key)
+    print(f"{concept.concept_name}: {count:,} patients")
     
     if count > 100000:
         print("  ⚠️  Very broad - consider more specific subtypes")
@@ -223,8 +223,8 @@ async def build_cardiovascular_cohort():
     
     print("Available cardiovascular concepts:")
     for concept in conditions[:3]:
-        descendants = await client.vocabulary.descendants(concept.conceptId)
-        print(f"  {concept.conceptId}: {concept.conceptName} ({len(descendants)} subtypes)")
+        descendants = await client.vocabulary.descendants(concept.concept_id)
+        print(f"  {concept.concept_id}: {concept.concept_name} ({len(descendants)} subtypes)")
     
     # Step 2: Choose based on research question
     
@@ -249,7 +249,7 @@ async def build_cardiovascular_cohort():
     
     # Step 3: Test with real data
     sources = await client.sources.list()
-    source_key = sources[0].sourceKey
+    source_key = sources[0].source_key
     
     # Compare broad vs specific approaches
     print("\\nPatient counts comparison:")
@@ -307,17 +307,17 @@ async def explore_medical_concept(search_term: str):
     
     # Show options with scope
     for i, concept in enumerate(conditions[:10]):
-        descendants = await client.vocabulary.descendants(concept.conceptId)
-        print(f"\\n{i+1}. {concept.conceptName}")
-        print(f"    ID: {concept.conceptId}")
+        descendants = await client.vocabulary.descendants(concept.concept_id)
+        print(f"\\n{i+1}. {concept.concept_name}")
+        print(f"    ID: {concept.concept_id}")
         print(f"    Scope: {len(descendants)} descendant conditions")
         
         if len(descendants) <= 5:
             for desc in descendants:
-                print(f"      → {desc.conceptName}")
+                print(f"      → {desc.concept_name}")
         elif descendants:
             for desc in descendants[:3]:
-                print(f"      → {desc.conceptName}")
+                print(f"      → {desc.concept_name}")
             print(f"      → ...and {len(descendants) - 3} more")
     
     return conditions
