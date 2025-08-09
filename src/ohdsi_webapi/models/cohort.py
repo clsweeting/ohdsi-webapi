@@ -1,16 +1,19 @@
 from __future__ import annotations
-from pydantic import BaseModel, field_validator
-from typing import Optional, Any
+
 import json
+from typing import Any
+
+from pydantic import BaseModel, field_validator
+
 
 class CohortDefinition(BaseModel):
     id: int | None = None
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     expressionType: str = "SIMPLE_EXPRESSION"
-    expression: Optional[dict[str, Any]] = None
-    
-    @field_validator('expression', mode='before')
+    expression: dict[str, Any] | None = None
+
+    @field_validator("expression", mode="before")
     @classmethod
     def parse_expression(cls, v):
         if isinstance(v, str):
@@ -20,22 +23,26 @@ class CohortDefinition(BaseModel):
                 return None
         return v
 
+
 class CohortGenerationRequest(BaseModel):
     # structure may include various settings; keep flexible
     id: int
     sourceKey: str
 
+
 class JobStatus(BaseModel):
     executionId: int | None = None
     status: str
-    startTime: Optional[str] = None
-    endTime: Optional[str] = None
+    startTime: str | None = None
+    endTime: str | None = None
+
 
 class InclusionRuleStats(BaseModel):
     id: int
     name: str
     count: int
     personCount: int
+
 
 class CohortCount(BaseModel):
     cohortDefinitionId: int

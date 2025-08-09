@@ -1,42 +1,46 @@
 from __future__ import annotations
-from typing import Any, Iterable, Optional, Sequence, Union
+
+from typing import Any, Iterable
+
+from ..cache import cached_method
 from ..http import HttpExecutor
 from ..models.vocabulary import Concept
-from ..cache import cached_method
+
 
 class VocabularyService:
     """Service for accessing OMOP vocabulary and concept operations.
-    
+
     This service provides comprehensive access to the OMOP Common Data Model
     vocabulary, including concept search, retrieval, and relationship traversal.
     Results are cached for performance optimization.
     """
-    
+
     def __init__(self, http: HttpExecutor):
         self._http = http
 
     def _normalize_concept_payload(self, data: dict[str, Any]) -> dict[str, Any]:
         # WebAPI may return uppercase keys (Atlas style). Map to snake/camel expected by model.
         mapping = {
-            'CONCEPT_ID': 'conceptId',
-            'CONCEPT_NAME': 'conceptName',
-            'VOCABULARY_ID': 'vocabularyId',
-            'CONCEPT_CODE': 'conceptCode',
-            'CONCEPT_CLASS_ID': 'conceptClassId',
-            'STANDARD_CONCEPT': 'standardConcept',
-            'DOMAIN_ID': 'domainId',
-            'VALID_START_DATE': 'validStartDate',
-            'VALID_END_DATE': 'validEndDate',
-            'INVALID_REASON': 'invalidReason',
+            "CONCEPT_ID": "conceptId",
+            "CONCEPT_NAME": "conceptName",
+            "VOCABULARY_ID": "vocabularyId",
+            "CONCEPT_CODE": "conceptCode",
+            "CONCEPT_CLASS_ID": "conceptClassId",
+            "STANDARD_CONCEPT": "standardConcept",
+            "DOMAIN_ID": "domainId",
+            "VALID_START_DATE": "validStartDate",
+            "VALID_END_DATE": "validEndDate",
+            "INVALID_REASON": "invalidReason",
         }
         normalized: dict[str, Any] = {}
         for k, v in data.items():
             nk = mapping.get(k, k)
             # Convert timestamp dates to strings if needed
-            if nk in ('validStartDate', 'validEndDate') and isinstance(v, int):
+            if nk in ("validStartDate", "validEndDate") and isinstance(v, int):
                 # Convert millisecond timestamp to ISO date string
                 from datetime import datetime
-                v = datetime.fromtimestamp(v / 1000).strftime('%Y-%m-%d')
+
+                v = datetime.fromtimestamp(v / 1000).strftime("%Y-%m-%d")
             normalized[nk] = v
         return normalized
 
@@ -50,29 +54,29 @@ class VocabularyService:
     @cached_method(ttl_seconds=3600)  # 1 hour for individual concepts (relatively stable)
     def get_concept(self, concept_id: int, *, force_refresh: bool = False) -> Concept:
         """Fetch a single concept by ID.
-        
+
         Parameters
         ----------
         concept_id : int
             The OMOP concept ID to retrieve.
         force_refresh : bool, default False
             If True, bypass cache and fetch fresh data from the server.
-            
+
         Returns
         -------
         Concept
             Complete concept information including name, vocabulary, domain, etc.
-            
+
         Examples
         --------
         >>> # Get a specific concept
         >>> concept = client.vocabulary.get_concept(201826)
         >>> print(f"{concept.conceptName} ({concept.vocabularyId})")
         'Type 2 diabetes mellitus (SNOMED)'
-        >>> 
+        >>>
         >>> # Force refresh from server
         >>> fresh_concept = client.vocabulary.get_concept(201826, force_refresh=True)
-        
+
         Notes
         -----
         Results are cached for 1 hour by default to improve performance.
@@ -83,14 +87,14 @@ class VocabularyService:
 
     def concept(self, concept_id: int, *, force_refresh: bool = False) -> Concept:
         """Alias for get_concept() to match WebAPI endpoint path (/vocabulary/concept/{id}).
-        
+
         Parameters
         ----------
         concept_id : int
             The OMOP concept ID to retrieve.
         force_refresh : bool, default False
             If True, bypass cache and fetch fresh data.
-            
+
         Returns
         -------
         Concept
@@ -103,17 +107,17 @@ class VocabularyService:
         self,
         query: str,
         *,
-        vocabulary_id: Optional[str] = None,
-        concept_class_id: Optional[str] = None,
-        domain_id: Optional[str] = None,
-        standard_concept: Optional[str] = None,  # 'S','C', etc.
-        invalid_reason: Optional[str] = None,    # 'D','U', etc.
+        vocabulary_id: str | None = None,
+        concept_class_id: str | None = None,
+        domain_id: str | None = None,
+        standard_concept: str | None = None,  # 'S','C', etc.
+        invalid_reason: str | None = None,  # 'D','U', etc.
         page: int = 1,
         page_size: int = 20,
-        sort: Optional[str] = None,
+        sort: str | None = None,
     ) -> list[Concept]:
         """Search for concepts by name or description.
-        
+
         Parameters
         ----------
         query : str
@@ -134,17 +138,17 @@ class VocabularyService:
             Number of results per page (max typically 100).
         sort : str, optional
             Sort order specification.
-            
+
         Returns
         -------
         list of Concept
             List of matching concepts with full metadata.
-            
+
         Examples
         --------
         >>> # Basic search
         >>> results = client.vocabulary.search("diabetes")
-        >>> 
+        >>>
         >>> # Search with filters
         >>> conditions = client.vocabulary.search(
         ...     "hypertension",
@@ -154,10 +158,8 @@ class VocabularyService:
         ... )
         """
         # Build JSON body according to WebAPI documentation
-        body: dict[str, Any] = {
-            "QUERY": query
-        }
-        
+        body: dict[str, Any] = {"QUERY": query}
+
         # Add optional filters to JSON body
         if vocabulary_id:
             body["VOCABULARY_ID"] = [vocabulary_id] if isinstance(vocabulary_id, str) else vocabulary_id
@@ -169,10 +171,10 @@ class VocabularyService:
             body["STANDARD_CONCEPT"] = standard_concept
         if invalid_reason:
             body["INVALID_REASON"] = invalid_reason
-            
+
         # Note: WebAPI search endpoint doesn't seem to support pagination in POST body
         # We'll handle pagination at the client level if needed
-        
+
         data = self._http.post("/vocabulary/search/", json_body=body)
         if isinstance(data, list):
             concepts = [self._concept_from_any(d) for d in data]
@@ -184,20 +186,20 @@ class VocabularyService:
 
     def descendants(self, concept_id: int) -> list[Concept]:
         """Get all descendant concepts of a given concept.
-        
+
         Descendant concepts are those that are hierarchically "below" the given
         concept in the OMOP vocabulary relationships (e.g., specific subtypes).
-        
+
         Parameters
         ----------
         concept_id : int
             The OMOP concept ID to find descendants for.
-            
+
         Returns
         -------
         list of Concept
             All concepts that are descendants of the input concept.
-            
+
         Examples
         --------
         >>> # Get all subtypes of diabetes
@@ -213,20 +215,20 @@ class VocabularyService:
     @cached_method(ttl_seconds=1800)  # 30 minutes for domains (fairly stable)
     def related(self, concept_id: int) -> list[Concept]:
         """Get concepts related to the given concept.
-        
+
         Returns concepts that are related through various relationships
         (maps to, is a, etc.) as defined in the OMOP vocabulary.
-        
+
         Parameters
         ----------
         concept_id : int
             The OMOP concept ID to find related concepts for.
-            
+
         Returns
         -------
         list of Concept
             All concepts related to the input concept through vocabulary relationships.
-            
+
         Examples
         --------
         >>> # Get related concepts
@@ -263,18 +265,22 @@ class VocabularyService:
         if isinstance(data, list):
             for d in data:
                 if isinstance(d, dict):
-                    if 'DOMAIN_ID' in d and 'domainId' not in d:
-                        out.append({
-                            'domainId': d.get('DOMAIN_ID'),
-                            'domainName': d.get('DOMAIN_NAME') or d.get('DOMAIN_ID'),
-                        })
+                    if "DOMAIN_ID" in d and "domainId" not in d:
+                        out.append(
+                            {
+                                "domainId": d.get("DOMAIN_ID"),
+                                "domainName": d.get("DOMAIN_NAME") or d.get("DOMAIN_ID"),
+                            }
+                        )
                     else:
                         # Pass through existing keys but ensure domainId present
-                        out.append({
-                            'domainId': d.get('domainId') or d.get('DOMAIN_ID') or d.get('id'),
-                            'domainName': d.get('domainName') or d.get('DOMAIN_NAME') or d.get('name') or d.get('domainId'),
-                            **{k: v for k, v in d.items() if k not in {'DOMAIN_ID', 'DOMAIN_NAME'}},
-                        })
+                        out.append(
+                            {
+                                "domainId": d.get("domainId") or d.get("DOMAIN_ID") or d.get("id"),
+                                "domainName": d.get("domainName") or d.get("DOMAIN_NAME") or d.get("name") or d.get("domainId"),
+                                **{k: v for k, v in d.items() if k not in {"DOMAIN_ID", "DOMAIN_NAME"}},
+                            }
+                        )
         return out
 
     def domains(self, *, force_refresh: bool = False) -> list[dict[str, Any]]:
@@ -283,7 +289,7 @@ class VocabularyService:
 
     def lookup_identifiers(
         self,
-        identifiers: Iterable[Union[tuple[str, str], dict[str, Any]]],
+        identifiers: Iterable[tuple[str, str] | dict[str, Any]],
         *,
         include_descendants: bool = False,
         include_mapped: bool = False,
@@ -302,12 +308,14 @@ class VocabularyService:
         for item in identifiers:
             if isinstance(item, tuple):
                 code, vocab = item
-                payload.append({
-                    "identifier": code,
-                    "vocabularyId": vocab,
-                    "includeDescendants": include_descendants,
-                    "includeMapped": include_mapped,
-                })
+                payload.append(
+                    {
+                        "identifier": code,
+                        "vocabularyId": vocab,
+                        "includeDescendants": include_descendants,
+                        "includeMapped": include_mapped,
+                    }
+                )
             elif isinstance(item, dict):
                 obj = dict(item)  # shallow copy
                 obj.setdefault("includeDescendants", include_descendants)

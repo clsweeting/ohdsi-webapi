@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 from pydantic import BaseModel
-from typing import Optional
+
 
 class SourceDaimon(BaseModel):
     daimonType: str
-    tableQualifier: Optional[str] = None
-    priority: Optional[int] = None
+    tableQualifier: str | None = None
+    priority: int | None = None
+
 
 class Source(BaseModel):
     sourceId: int

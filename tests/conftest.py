@@ -1,8 +1,10 @@
 import os
+
 import pytest
 from ohdsi_webapi import WebApiClient
 
 LIVE_ENV = "INTEGRATION_WEBAPI"
+
 
 @pytest.fixture(scope="session")
 def live_client():
@@ -12,6 +14,7 @@ def live_client():
     client = WebApiClient(base)
     yield client
     client.close()
+
 
 def pytest_collection_modifyitems(config, items):
     if os.getenv(LIVE_ENV):

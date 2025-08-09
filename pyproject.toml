@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ohdsi-webapi-client"
-version = "0.1.0"
+version = "0.1.0-alpha"
 description = "Python client for OHDSI WebAPI (MVP: info, sources, vocabulary, concept sets, cohorts)."
 authors = ["Your Name <you@example.com>"]
 license = "Apache-2.0"
@@ -46,11 +46,18 @@ vcrpy = "^6.0.0"
 ipython = ">=8.0,<9.0"
 
 [tool.ruff]
-line-length = 100
+line-length = 140
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "PT", "RUF"]
 
+# Ignore certain errors in example files
+[tool.ruff.lint.per-file-ignores]
+"examples/**" = ["E402", "F841", "B007", "RUF001"]  # Allow imports after code, unused vars, unused loop vars, unicode chars in examples
+"test_*.py" = ["E402"]  # Allow imports after code in test files
+
 [tool.black]
-line-length = 100
+line-length = 140
 
 [tool.mypy]
 python_version = "3.10"
