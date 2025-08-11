@@ -4,10 +4,10 @@ import pytest
 @pytest.mark.webapi_integration()
 def test_live_get_concept(live_client):
     """Test getting a known concept."""
-    concept = live_client.vocabulary.get_concept(201826)  # Type 2 diabetes mellitus
+    concept = live_client.vocabulary.concept(201826)  # Type 2 diabetes mellitus
     assert concept.concept_name == "Type 2 diabetes mellitus"
     assert concept.concept_id == 201826
-    assert concept.domainId == "Condition"
+    assert concept.domain_id == "Condition"
 
 
 @pytest.mark.webapi_integration()
@@ -33,4 +33,4 @@ def test_live_search(live_client):
     condition_results = live_client.vocabulary.search("diabetes", domain_id="Condition", page_size=3)
     assert len(condition_results) > 0
     # All results should be conditions
-    assert all(c.domainId == "Condition" for c in condition_results)
+    assert all(c.domain_id == "Condition" for c in condition_results)
