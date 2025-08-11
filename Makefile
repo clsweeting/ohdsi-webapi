@@ -16,8 +16,8 @@ help:
 	@echo "  make typecheck    - Run mypy type checking"
 	@echo ""
 	@echo "Individual commands:"
-	@echo "  make lint-fix     - Fix auto-fixable linting issues"
-	@echo "  make lint-fix-unsafe - Fix auto-fixable issues + type modernization"
+	@echo "  make fix          - Fix auto-fixable linting issues"
+	@echo "  make fix-unsafe   - Fix auto-fixable issues + type modernization"
 	@echo "  make test-unit    - Run only unit tests"
 	@echo "  make test-integration - Run only integration tests"
 	@echo "  make test-live    - Run tests against live API (requires .env)"
@@ -41,13 +41,13 @@ lint:
 	@echo "🔍 Checking code formatting with black..."
 	poetry run black --check .
 
-lint-fix:
+fix:
 	@echo "🔧 Fixing auto-fixable issues with ruff..."
 	poetry run ruff check . --fix
 	@echo "🔧 Formatting code with black..."
 	poetry run black .
 
-lint-fix-unsafe:
+fix-unsafe:
 	@echo "🔧 Fixing auto-fixable issues with ruff (including unsafe fixes)..."
 	poetry run ruff check . --fix --unsafe-fixes
 	@echo "🔧 Formatting code with black..."

@@ -6,7 +6,7 @@ This guide explains how to create cohorts programmatically using the OHDSI WebAP
 
 OHDSI cohorts are defined using a JSON expression that specifies:
 1. **Initial Events** - What qualifies someone for entry into the cohort
-2. **Inclusion Criteria** - Additional rules that must be met
+2. **Inclusion & Exclusion Criteria** - Additional rules that must be met
 3. **Cohort Exit** - When someone leaves the cohort
 4. **Censoring** - Rules for observation period requirements
 
@@ -40,9 +40,9 @@ diabetes_concepts = {
                     "vocabularyId": "SNOMED",
                     "domainId": "Condition"
                 },
-                "includeDescendants": True,
-                "includeMapped": False,
-                "isExcluded": False
+                "includeDescendants": true,
+                "includeMapped": false,
+                "isExcluded": false
             }
         ]
     }
@@ -97,8 +97,8 @@ cohort_expression = {
                             "end": {
                                 "coeff": 1
                             },
-                            "useIndexEnd": False,
-                            "useEventEnd": False
+                            "useIndexEnd": false,
+                            "useEventEnd": false
                         },
                         "occurrence": {
                             "type": 2,
@@ -129,8 +129,8 @@ cohort_expression = {
                             "end": {
                                 "coeff": 1
                             },
-                            "useIndexEnd": False,
-                            "useEventEnd": False
+                            "useIndexEnd": false,
+                            "useEventEnd": false
                         },
                         "occurrence": {
                             "type": 2,
@@ -160,8 +160,8 @@ cohort_expression = {
                                 "coeff": 0,
                                 "dateField": "StartDate"
                             },
-                            "useIndexEnd": False,
-                            "useEventEnd": False
+                            "useIndexEnd": false,
+                            "useEventEnd": false
                         },
                         "occurrence": {
                             "type": 2,

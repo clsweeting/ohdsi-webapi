@@ -13,7 +13,6 @@ classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -23,12 +22,13 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
+python = ">=3.11,<4.0"
 httpx = { version = ">=0.27,<0.28", extras=["http2"] }
 pydantic = ">=2.7,<3.0"
 tenacity = ">=8.2,<9.0"
 typing-extensions = ">=4.11,<5.0"
 python-dotenv = "^1.1.1"
+ohdsi-cohort-schemas = "^0.1.0"
 
 [tool.poetry.extras]
 cli = ["typer", "rich"]
