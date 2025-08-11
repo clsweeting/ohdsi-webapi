@@ -2,7 +2,9 @@
 
 ## What are (Data) Sources?
 
-A **data source** in OHDSI represents a specific database containi### Choosing the Right Source
+A **data source** in OHDSI represents a specific database containing data that has been converted to the [OMOP Common Data Model (CDM)](https://ohdsi.github.io/CommonDataModel/) format. Think of it as a pointer to a particular healthcare dataset that OHDSI tools can analyze.
+
+### Choosing the right Source
 
 ```python
 # Get source details to understand what you're working with
@@ -16,7 +18,7 @@ for source in sources:
     
 # Note: Detailed source info like patient counts may require additional
 # endpoints that vary by WebAPI version - check your WebAPI documentation
-```data that has been converted to the [OMOP Common Data Model (CDM)](https://ohdsi.github.io/CommonDataModel/) format. Think of it as a pointer to a particular healthcare dataset that OHDSI tools can analyze.
+```
 
 Examples of data sources might include:
 - A hospital's electronic health records (EHR) 
@@ -43,15 +45,13 @@ Each data source has these key properties:
 
 ### Example Source Configuration
 
-```
 | source_id | source_key | source_name                   | cdm_schema  | results_schema |
 |-----------|------------|-------------------------------|-------------|----------------|
 | 1         | SYNPUF     | CMS Synthetic Public Use      | cdm_synpuf  | results_synpuf |
 | 2         | EHR_UK     | UK EHR OMOP Conversion        | omop_ehr    | results_ehr    |
 | 3         | OPTUM      | Optum Clinformatics Data Mart | cdm_optum   | results_optum  |
-```
 
-## Working with Sources in Your Code
+## Working with Sources in your Code
 
 ### 1. List Available Sources
 
@@ -69,7 +69,7 @@ for source in sources:
     print(f"Key: {source.source_key}, Name: {source.source_name}")
 ```
 
-### 2. Understanding source_key
+### 2. Understanding `source_key`
 
 The `source_key` is like a nickname for each database. Instead of dealing with complex connection strings, you just use the short key (like `"SYNPUF"` or `"EHR_UK"`) in your API calls.
 
