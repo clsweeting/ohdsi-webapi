@@ -17,78 +17,76 @@ This client prioritizes **cohort building workflows** and covers these key areas
 - Admin/security endpoints
 - Data characterization reports
 
-## Endpoint Reference
+## Naming Convention
 
-### Naming Convention
-
-This client follows a **predictable naming pattern** that exactly mirrors WebAPI REST endpoints:
+This client follows a **predictable naming pattern** that mirrors WebAPI REST endpoints exactly:
 
 - **Base endpoints**: `/info` → `client.info()`, `/conceptset/` → `client.conceptset()`, `/cohortdefinition/` → `client.cohortdefinition()`
 - **Resource by ID**: `/conceptset/{id}` → `client.conceptset(id)`, `/cohortdefinition/{id}` → `client.cohortdefinition(id)`, `/job/{id}` → `client.job(id)`
-- **Sub-resources**: `/conceptset/{id}/expression` → `client.conceptset_expression(id)`, `/source/sources` → `client.source_sources()`
+- **Sub-resources**: `/conceptset/{id}/expression` → `client.conceptset_expression(id)`, `/source/sources` → `client.sources()`
 - **Actions**: `/cohortdefinition/{id}/generate/{source}` → `client.cohortdefinition_generate(id, source)`
 
-**Backwards Compatible Shortcuts**: For convenience, the original service-based methods (`client.concept_sets.*`, `client.cohorts.*`, `client.sources.list()`) are maintained as aliases.
+This makes the Python code self-documenting - if you see `client.conceptset()`, you immediately know it calls `GET /conceptset/`.
 
 ### 🏥 Info & Health
 
-| WebAPI Endpoint | Predictable Method | Shortcut/Alias | Description |
-|----------------|-------------------|----------------|-------------|
-| `GET /info` | `client.info()` | `client.info.get()` | WebAPI version and build info |
+| WebAPI Endpoint | Python Method | Description |
+|----------------|---------------|-------------|
+| `GET /info` | `client.info()` | WebAPI version and build info |
 
 ### 📊 Data Sources
 
-| WebAPI Endpoint | Predictable Method | Shortcut/Alias | Description |
-|----------------|-------------------|----------------|-------------|
-| `GET /source/sources` | `client.source_sources()` | `client.sources.list()` | List all configured data sources |
+| WebAPI Endpoint | Python Method | Description |
+|----------------|---------------|-------------|
+| `GET /source/sources` | `client.sources()` | List all configured data sources |
 
 ### 📖 Vocabulary & Concepts
 
-| WebAPI Endpoint | Predictable Method | Shortcut/Alias | Description |
-|----------------|-------------------|----------------|-------------|
-| `GET /vocabulary/domains` | `client.vocabulary.domains()` | `client.vocab.list_domains()` | List all OMOP domains |
-| `GET /vocabulary/vocabularies` | `client.vocabulary.vocabularies()` | `client.vocab.list_vocabularies()` | List all vocabularies |
-| `GET /vocabulary/concept/{id}` | `client.vocabulary.concept(id)` | `client.vocab.get_concept(id)` | Get single concept by ID |
-| `GET /vocabulary/concept/{id}/descendants` | `client.vocabulary.concept_descendants(id)` | `client.vocab.descendants(id)` | Get child concepts |
-| `GET /vocabulary/concept/{id}/related` | `client.vocabulary.concept_related(id)` | `client.vocab.related(id)` | Get related concepts |
-| `POST /vocabulary/search/` | `client.vocabulary.search(query, ...)` | `client.vocab.search(query, ...)` | Search concepts by text |
-| `POST /vocabulary/concepts` | `client.vocabulary.concepts(ids)` | `client.vocab.bulk_get(ids)` | Bulk retrieve concepts |
-| `POST /vocabulary/lookup/identifiers` | `client.vocabulary.lookup_identifiers(...)` | - | Map source codes to concepts |
+| WebAPI Endpoint | Python Method | Description |
+|----------------|---------------|-------------|
+| `GET /vocabulary/domains` | `client.vocabulary.domains()` | List all OMOP domains |
+| `GET /vocabulary/vocabularies` | `client.vocabulary.vocabularies()` | List all vocabularies |
+| `GET /vocabulary/concept/{id}` | `client.vocabulary.concept(id)` | Get single concept by ID |
+| `GET /vocabulary/concept/{id}/descendants` | `client.vocabulary.concept_descendants(id)` | Get child concepts |
+| `GET /vocabulary/concept/{id}/related` | `client.vocabulary.concept_related(id)` | Get related concepts |
+| `POST /vocabulary/search/` | `client.vocabulary.search(query, ...)` | Search concepts by text |
+| `POST /vocabulary/concepts` | `client.vocabulary.concepts(ids)` | Bulk retrieve concepts |
+| `POST /vocabulary/lookup/identifiers` | `client.vocabulary.lookup_identifiers(...)` | Map source codes to concepts |
 
 ### 📋 Concept Sets
 
-| WebAPI Endpoint | Predictable Method | Shortcut/Alias | Description |
-|----------------|-------------------|----------------|-------------|
-| `GET /conceptset/` | `client.conceptset()` | `client.concept_sets.list()` | List all concept sets |
-| `GET /conceptset/{id}` | `client.conceptset(id)` | `client.concept_sets.get(id)` | Get concept set by ID |
-| `POST /conceptset/` | `client.conceptset.create(name, expression)` | `client.concept_sets.create(name, expression)` | Create new concept set |
-| `PUT /conceptset/{id}` | `client.conceptset.update(id, concept_set)` | `client.concept_sets.update(concept_set)` | Update concept set |
-| `DELETE /conceptset/{id}` | `client.conceptset.delete(id)` | `client.concept_sets.delete(id)` | Delete concept set |
-| `GET /conceptset/{id}/expression` | `client.conceptset_expression(id)` | `client.concept_sets.expression(id)` | Get concept set expression |
-| `POST /conceptset/{id}/expression` | `client.conceptset_expression.set(id, expr)` | `client.concept_sets.set_expression(id, expr)` | Update expression only |
-| `GET /conceptset/{id}/items` | `client.conceptset_items(id)` | `client.concept_sets.resolve(id)` | Resolve to concrete concepts |
-| `GET /conceptset/{id}/export` | `client.conceptset_export(id, format)` | `client.concept_sets.export(id, format)` | Export as CSV/JSON |
-| `POST /conceptset/compare` | `client.conceptset.compare(id1, id2)` | `client.concept_sets.compare(id1, id2)` | Compare two concept sets |
-| `GET /conceptset/{id}/generationinfo` | `client.conceptset_generationinfo(id)` | `client.concept_sets.generation_info(id)` | Get generation metadata |
+| WebAPI Endpoint | Python Method | Description |
+|----------------|---------------|-------------|
+| `GET /conceptset/` | `client.conceptset()` | List all concept sets |
+| `GET /conceptset/{id}` | `client.conceptset(id)` | Get concept set by ID |
+| `POST /conceptset/` | `client.conceptset.create(name, expression)` | Create new concept set |
+| `PUT /conceptset/{id}` | `client.conceptset.update(id, concept_set)` | Update concept set |
+| `DELETE /conceptset/{id}` | `client.conceptset.delete(id)` | Delete concept set |
+| `GET /conceptset/{id}/expression` | `client.conceptset_expression(id)` | Get concept set expression |
+| `POST /conceptset/{id}/expression` | `client.conceptset_expression.set(id, expr)` | Update expression only |
+| `GET /conceptset/{id}/items` | `client.conceptset_items(id)` | Resolve to concrete concepts |
+| `GET /conceptset/{id}/export` | `client.conceptset_export(id, format)` | Export as CSV/JSON |
+| `POST /conceptset/compare` | `client.conceptset.compare(id1, id2)` | Compare two concept sets |
+| `GET /conceptset/{id}/generationinfo` | `client.conceptset_generationinfo(id)` | Get generation metadata |
 
 ### 👥 Cohort Definitions
 
-| WebAPI Endpoint | Predictable Method | Shortcut/Alias | Description |
-|----------------|-------------------|----------------|-------------|
-| `GET /cohortdefinition/` | `client.cohortdefinition()` | `client.cohorts.list()` | List all cohort definitions |
-| `GET /cohortdefinition/{id}` | `client.cohortdefinition(id)` | `client.cohorts.get(id)` | Get cohort definition by ID |
-| `POST /cohortdefinition/` | `client.cohortdefinition.create(cohort_def)` | `client.cohorts.create(cohort_def)` | Create new cohort definition |
-| `PUT /cohortdefinition/{id}` | `client.cohortdefinition.update(id, cohort_def)` | `client.cohorts.update(cohort_def)` | Update cohort definition |
-| `DELETE /cohortdefinition/{id}` | `client.cohortdefinition.delete(id)` | `client.cohorts.delete(id)` | Delete cohort definition |
-| `POST /cohortdefinition/{id}/generate/{source}` | `client.cohortdefinition_generate(id, source_key)` | `client.cohorts.generate(id, source_key)` | Generate cohort on data source |
-| `GET /cohortdefinition/{id}/info` | `client.cohortdefinition_info(id)` | `client.cohorts.generation_status(id, source)` | Check generation status |
-| `GET /cohortdefinition/{id}/inclusionrules/{source}` | `client.cohortdefinition_inclusionrules(id, source)` | `client.cohorts.inclusion_rules(id, source)` | Get inclusion rule statistics |
+| WebAPI Endpoint | Python Method | Description |
+|----------------|---------------|-------------|
+| `GET /cohortdefinition/` | `client.cohortdefinition()` | List all cohort definitions |
+| `GET /cohortdefinition/{id}` | `client.cohortdefinition(id)` | Get cohort definition by ID |
+| `POST /cohortdefinition/` | `client.cohortdefinition.create(cohort_def)` | Create new cohort definition |
+| `PUT /cohortdefinition/{id}` | `client.cohortdefinition.update(id, cohort_def)` | Update cohort definition |
+| `DELETE /cohortdefinition/{id}` | `client.cohortdefinition.delete(id)` | Delete cohort definition |
+| `POST /cohortdefinition/{id}/generate/{source}` | `client.cohortdefinition_generate(id, source_key)` | Generate cohort on data source |
+| `GET /cohortdefinition/{id}/info` | `client.cohortdefinition_info(id)` | Check generation status |
+| `GET /cohortdefinition/{id}/inclusionrules/{source}` | `client.cohortdefinition_inclusionrules(id, source)` | Get inclusion rule statistics |
 
 ### ⚙️ Job Management
 
-| WebAPI Endpoint | Predictable Method | Shortcut/Alias | Description |
-|----------------|-------------------|----------------|-------------|
-| `GET /job/{execution_id}` | `client.job(execution_id)` | `client.jobs.get_status(execution_id)` | Get job execution status |
+| WebAPI Endpoint | Python Method | Description |
+|----------------|---------------|-------------|
+| `GET /job/{execution_id}` | `client.job(execution_id)` | Get job execution status |
 
 ## Usage Examples
 
@@ -103,7 +101,7 @@ client = WebApiClient("https://your-webapi-url.com")
 diabetes_concepts = client.vocabulary.search("type 2 diabetes", domain_id="Condition")
 main_concept = diabetes_concepts[0]
 
-# 2. Create a concept set (using predictable naming)
+# 2. Create a concept set
 concept_set_expr = {
     "items": [{
         "concept": {"conceptId": main_concept.concept_id},
@@ -124,12 +122,40 @@ cohort = client.cohortdefinition.create({
 })
 
 # 4. Generate on a data source
-sources = client.sources.list()
+sources = client.sources()
 source_key = sources[0].source_key
 status = client.cohortdefinition_generate(cohort.id, source_key)
 
-# 5. Poll for completion
-final_status = client.cohorts.poll_generation(cohort.id, source_key)  # Helper method
+# 5. Check generation status
+final_status = client.cohortdefinition_info(cohort.id)
+```
+
+### Quick Reference
+
+```python
+# Health check
+info = client.info()
+
+# List available data sources
+sources = client.sources()
+
+# Search vocabulary
+domains = client.vocabulary.domains()
+concepts = client.vocabulary.search("diabetes")
+
+# Work with concept sets
+concept_sets = client.conceptset()
+cs = client.conceptset(123)
+expression = client.conceptset_expression(123)
+
+# Work with cohort definitions  
+cohorts = client.cohortdefinition()
+cohort = client.cohortdefinition(456)
+client.cohortdefinition_generate(456, "SYNPUF")
+
+# Check job status
+status = client.job("execution-uuid")
+```
 print(f"Generation {final_status.status}")
 ```
 

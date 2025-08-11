@@ -18,23 +18,23 @@ When OHDSI WebAPI is installed, administrators configure one or more data source
 
 Each data source has these key properties:
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| `sourceId` | Numeric database ID (primary key) | `1` |
-| `sourceKey` | Short string identifier used in API calls | `"SYNPUF"` |
-| `sourceName` | Human-readable description | `"CMS Synthetic Public Use Files"` |
-| `cdmSchema` | Database schema containing the OMOP CDM tables | `"cdm_synpuf"` |
-| `resultsSchema` | Schema where analysis results are stored | `"results_synpuf"` |
-| Connection details | Database connection info (JDBC URL, credentials, etc.) | `"jdbc:postgresql://..."` |
+| JSON Field | Python Attribute | Description | Example |
+|------------|------------------|-------------|---------|
+| `sourceId` | `source_id` | Numeric database ID (primary key) | `1` |
+| `sourceKey` | `source_key` | Short string identifier used in API calls | `"SYNPUF"` |
+| `sourceName` | `source_name` | Human-readable description | `"CMS Synthetic Public Use Files"` |
+| `cdmSchema` | N/A | Database schema containing the OMOP CDM tables | `"cdm_synpuf"` |
+| `resultsSchema` | N/A | Schema where analysis results are stored | `"results_synpuf"` |
+| Connection details | N/A | Database connection info (JDBC URL, credentials, etc.) | `"jdbc:postgresql://..."` |
 
 ### Example Source Configuration
 
 ```
-| sourceId | sourceKey | sourceName                    | cdmSchema   | resultsSchema |
-|----------|-----------|-------------------------------|-------------|---------------|
-| 1        | SYNPUF    | CMS Synthetic Public Use      | cdm_synpuf  | results_synpuf|
-| 2        | EHR_UK    | UK EHR OMOP Conversion        | omop_ehr    | results_ehr   |
-| 3        | OPTUM     | Optum Clinformatics Data Mart | cdm_optum   | results_optum |
+| source_id | source_key | source_name                   | cdm_schema  | results_schema |
+|-----------|------------|-------------------------------|-------------|----------------|
+| 1         | SYNPUF     | CMS Synthetic Public Use      | cdm_synpuf  | results_synpuf |
+| 2         | EHR_UK     | UK EHR OMOP Conversion        | omop_ehr    | results_ehr    |
+| 3         | OPTUM      | Optum Clinformatics Data Mart | cdm_optum   | results_optum  |
 ```
 
 ## Working with Sources in Your Code
@@ -44,20 +44,20 @@ Each data source has these key properties:
 First, discover what data sources are available:
 
 ```python
-from ohdsi_webapi_client import WebAPIClient
+from ohdsi_webapi import WebApiClient
 
-client = WebAPIClient("https://your-webapi-url.com")
+client = WebApiClient("https://your-webapi-url.com")
 
 # Get list of all configured sources
-sources = client.get_sources()
+sources = client.sources.list()
 
 for source in sources:
-    print(f"Key: {source.sourceKey}, Name: {source.sourceName}")
+    print(f"Key: {source.source_key}, Name: {source.source_name}")
 ```
 
-### 2. Understanding sourceKey
+### 2. Understanding source_key
 
-The `sourceKey` is like a nickname for each database. Instead of dealing with complex connection strings, you just use the short key (like `"SYNPUF"` or `"EHR_UK"`) in your API calls.
+The `source_key` is like a nickname for each database. Instead of dealing with complex connection strings, you just use the short key (like `"SYNPUF"` or `"EHR_UK"`) in your API calls.
 
 This key tells WebAPI:
 - Which database to connect to
@@ -87,7 +87,7 @@ cohort_id = saved_cohort.id
 # 3. Generate the cohort against a specific data source
 client.generate_cohort(
     cohort_definition_id=cohort_id,
-    source_key="SYNPUF"  # Use the sourceKey here
+    source_key="SYNPUF"  # Use the source_key here
 )
 
 # 4. Check generation status and get results
@@ -126,12 +126,12 @@ By running the same cohort definition against multiple sources, researchers can:
 
 ```python
 # Get source details to understand what you're working with
-sources = client.get_sources()
+sources = client.sources.list()
 
 for source in sources:
-    info = client.get_source_info(source.sourceKey)
+    info = client.get_source_info(source.source_key)
     print(f"""
-    Source: {source.sourceName}
+    Source: {source.source_name}
     Patients: {info.person_count:,}
     Data Range: {info.min_observation_date} to {info.max_observation_date}
     """)
@@ -152,7 +152,7 @@ except GenerationError as e:
 
 ```python
 # Verify a source exists before using it
-available_keys = [s.sourceKey for s in client.get_sources()]
+available_keys = [s.source_key for s in client.sources.list()]
 
 if "SYNPUF" in available_keys:
     # Safe to use this source
@@ -164,7 +164,7 @@ else:
 ## Common Questions
 
 **Q: How do I know which source to use for my research?**  
-A: It depends on your research question. Use `get_sources()` and `get_source_info()` to understand the characteristics of each available source.
+A: It depends on your research question. Use `client.sources.list()` and `get_source_info()` to understand the characteristics of each available source.
 
 **Q: Can I run the same cohort on multiple sources?**  
 A: Yes! This is common for validation studies. Just call `generate_cohort()` with different `source_key` values.

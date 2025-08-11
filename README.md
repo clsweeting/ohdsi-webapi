@@ -138,14 +138,14 @@ Spin up a local WebAPI + database (Docker) to safely test create/update/delete f
 
 ## Additional Documentation
 See the docs directory for deeper guides:
+- [OHDSI Sources](docs/sources.md) - working with data sources and CDM databases  
+- [Vocabulary & Concepts](docs/vocabulary.md) - concept lookup, search, and hierarchies
+- [Finding Codes](docs/finding_codes.md) - techniques for discovering OMOP concept codes
+- [Concept Sets](docs/concept_sets.md) - creating and managing concept collections
+- [Cohorts](docs/cohorts.md) - cohort definition management and generation
+- [Cohort Building](docs/cohort_building.md) - advanced cohort construction patterns
 - [Supported Endpoints](docs/supported_endpoints.md) - which WebAPI endpoints are supported
-- Finding Codes: [docs/finding_codes.md](docs/finding_codes.md)
-- OHDSI (data) sources: [docs/sources.md](docs/sources.md)
-- Vocabulary & Concepts: [docs/vocabulary.md](docs/vocabulary.md)
-- Concept Sets: [docs/concept_sets.md](docs/concept_sets.md)
-- Cohorts: [docs/cohorts.md](docs/cohorts.md)
-- Cohort Building: [docs/cohort_building.md](docs/cohort_building.md)
-- Caching: [docs/caching.md](docs/caching.md)
+- [Caching](docs/caching.md) - performance optimization with intelligent caching
 
 ## Roadmap
 See `ROADMAP.md` (to be added).Planned:

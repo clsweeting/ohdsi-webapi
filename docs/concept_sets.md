@@ -53,66 +53,54 @@ Flags:
 - `isExcluded`: subtract this branch from the cumulative set.
 
 ## Basic Operations
+
+This client uses **predictable REST-style methods** that mirror the WebAPI endpoints directly. See the [Supported Endpoints](supported_endpoints.md) page for the complete mapping.
+
 ```python
 from ohdsi_webapi import WebApiClient
 client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 # List concept sets (metadata only) - WARNING: can be 20,000+ items
-concept_sets = client.concept_sets.list()
+# GET /conceptset/ -> client.conceptset()
+concept_sets = client.conceptset()
 print(len(concept_sets))
 
-# RECOMMENDED: Use filtering for large lists
-covid_sets = client.concept_sets.list_filtered(name_contains="covid", limit=10)
-diabetes_sets = client.concept_sets.list_filtered(name_contains="diabetes", limit=5)
-
-# Memory-efficient processing of all concept sets
-for concept_set in client.concept_sets.iter_all():
-    if len(concept_set.expression.get('items', [])) > 50:
-        print(f"Large concept set: {concept_set.name}")
-    # Break early if you don't need to process all 20k+ items
-    break
-
-# Pick one and fetch full details
-cs = client.concept_sets.get(concept_sets[0].id)
+# Get a specific concept set by ID
+# GET /conceptset/{id} -> client.conceptset(id)
+cs = client.conceptset(concept_sets[0].id)
 print(cs.name)
 
-# Fetch stored expression
-expr = client.concept_sets.expression(cs.id)
+# Fetch stored expression 
+# GET /conceptset/{id}/expression -> client.conceptset_expression(id)
+expr = client.conceptset_expression(cs.id)
 print(expr.get("items", []))
 
-# Resolve to concrete included concepts
-resolved = client.concept_sets.resolve(cs.id)
+# Resolve to concrete included concepts 
+# GET /conceptset/{id}/items -> client.conceptset_items(id)
+resolved = client.conceptset_items(cs.id)
 print("Resolved count:", len(resolved))
 ```
 
 ## Working with Large Concept Set Lists
 
-The WebAPI `/conceptset/` endpoint returns ALL concept sets without pagination (often 20,000+ on busy servers). Use these methods for practical access:
+The WebAPI `/conceptset/` endpoint returns ALL concept sets without pagination (often 20,000+ on busy servers). To work with large lists efficiently:
 
-### Filtered Search
 ```python
-# Find concept sets by name
-covid_sets = client.concept_sets.list_filtered(name_contains="covid", limit=10)
-drug_sets = client.concept_sets.list_filtered(name_contains="drug", limit=20)
+# Get all concept sets
+all_concept_sets = client.conceptset()
 
-# Filter by tags (if your server uses tagging)
-tagged_sets = client.concept_sets.list_filtered(tags=["validated", "research"])
+# For basic name filtering, you can filter the list in Python
+covid_sets = [cs for cs in all_concept_sets if "covid" in cs.name.lower()][:10]
+diabetes_sets = [cs for cs in all_concept_sets if "diabetes" in cs.name.lower()][:5]
 
-# Combine filters
-research_diabetes = client.concept_sets.list_filtered(
-    name_contains="diabetes", 
-    tags=["research"], 
-    limit=5
-)
-```
-
-### Memory-Efficient Processing
-```python
-# Process all concept sets without loading everything into memory
+# Process concept sets one at a time to avoid memory issues
 large_concept_sets = []
-for cs in client.concept_sets.iter_all():
-    if cs.expression and len(cs.expression.get('items', [])) > 100:
-        large_concept_sets.append(cs)
+for cs in all_concept_sets:
+    # Get full details for interesting ones
+    if "diabetes" in cs.name.lower():
+        expr = client.conceptset_expression(cs.id)
+        if len(expr.get('items', [])) > 10:
+            large_concept_sets.append(cs)
     
     # Break early if you find what you need
     if len(large_concept_sets) >= 10:
@@ -120,9 +108,10 @@ for cs in client.concept_sets.iter_all():
 ```
 
 ## Creating a New Concept Set
+
 ```python
 # Build expression programmatically
-metformin = client.vocab.get_concept(201826)
+metformin = client.vocabulary.concept(201826)  # GET /vocabulary/concept/201826
 expr = {
     "items": [
         {
@@ -138,56 +127,47 @@ expr = {
         }
     ]
 }
-cs_new = client.concept_sets.create("Metformin Only", expression=expr)
+
+# Create the concept set
+# POST /conceptset/ -> client.conceptset.create()
+cs_new = client.conceptset.create("Metformin Only", expression=expr)
 print(cs_new.id)
 ```
+```
 
-## Updating Expression (Partial vs Full)
-Two approaches:
-1. Update full ConceptSet object (we already hold its id & expression):
+## Updating Expression
+
 ```python
+# Update full ConceptSet object 
 cs_new.expression = expr
-cs_new = client.concept_sets.update(cs_new)
-```
-2. Replace just the expression (does not change other metadata):
-```python
-client.concept_sets.set_expression(cs_new.id, expr)
+cs_new = client.conceptset.update(cs_new.id, cs_new)  # PUT /conceptset/{id}
+
+# Or update just the expression 
+client.conceptset_expression.set(cs_new.id, expr)  # POST /conceptset/{id}/expression
 ```
 
-## Bulk Resolve Multiple Concept Sets
-If supported by the server:
-```python
-mapping = client.concept_sets.resolve_many([cs.id for cs in concept_sets[:3]])
-for cid, items in mapping.items():
-    print(cid, len(items))
-```
-Falls back to sequential resolution if bulk endpoint unsupported.
+## Other Operations
 
-## Exporting a Concept Set
+### Exporting a Concept Set  
 ```python
-csv_text = client.concept_sets.export(cs.id, format="csv")
+# Export as CSV or JSON
+csv_text = client.conceptset_export(cs.id, format="csv")  # GET /conceptset/{id}/export
 print(csv_text.splitlines()[:5])
 ```
 
-## Comparing Two Concept Sets
+### Comparing Two Concept Sets
 ```python
-overlap = client.concept_sets.compare(concept_sets[0].id, concept_sets[1].id)
+# Compare overlap between concept sets
+overlap = client.conceptset.compare(concept_sets[0].id, concept_sets[1].id)  # POST /conceptset/compare
 print(len(overlap))  # structure depends on server version
 ```
 
-## Included Concepts Shortcut
-Some servers expose an endpoint returning included concept rows without fully resolving:
+### Generation Info
 ```python
-included = client.concept_sets.included_concepts(cs.id)
-print(len(included))
+# Get metadata about where the concept set has been used
+gen_info = client.conceptset_generationinfo(cs.id)  # GET /conceptset/{id}/generationinfo
+print(gen_info)  # May be empty or unsupported
 ```
-If endpoint not available, this returns an empty list.
-
-## Generation Info
-Optional metadata about where the concept set has been used:
-```python
-gen_info = client.concept_sets.generation_info(cs.id)
-print(gen_info)
 ```
 May be empty or unsupported.
 
@@ -197,16 +177,21 @@ May be empty or unsupported.
 - Version control important concept sets by exporting expression JSON.
 
 ## Error Handling
+
 Methods raise `WebApiError` subclasses on HTTP issues. Wrap calls if you need fallbacks:
+
 ```python
 from ohdsi_webapi.exceptions import WebApiError
+
 try:
-    client.concept_sets.get(999999)
+    cs = client.conceptset(999999)  # GET /conceptset/999999
 except WebApiError as e:
     print("Not found", e.status_code)
 ```
+```
 
 ## Roadmap Enhancements (Future)
-- Helper builder API (add_concept, exclude_concept, etc.)
-- Diff utility returning added/removed concept IDs
-- Validation of expression structure
+- Helper builder API for easier expression construction (add_concept, exclude_concept, etc.)
+- Diff utility returning added/removed concept IDs  
+- Validation of expression structure before submission
+- Better filtering and search capabilities for large concept set lists
