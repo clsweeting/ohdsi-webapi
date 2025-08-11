@@ -39,14 +39,14 @@ Most of the time, you want actual medical conditions (not drugs, procedures, etc
 ```python
 # Filter to condition concepts only
 conditions = [c for c in concepts 
-             if c.domainId == 'Condition' and c.standardConcept == 'S']
+             if c.domain_id == 'Condition' and c.standard_concept == 'S']
 
 print(f"Filtered to {len(conditions)} standard condition concepts")
 
 # Show the top results
 for i, concept in enumerate(conditions[:5]):
     print(f"{i+1}. ID {concept.concept_id}: {concept.concept_name}")
-    print(f"   Domain: {concept.domainId}, Standard: {concept.standardConcept}")
+    print(f"   Domain: {concept.domain_id}, Standard: {concept.standard_concept}")
 ```
 
 ### Step 3: Understand Concept Scope
@@ -109,8 +109,8 @@ for search_term in specific_searches:
     # Find the best standard condition concept
     best_match = None
     for concept in search_results:
-        if (concept.domainId == 'Condition' and 
-            concept.standardConcept == 'S' and
+        if (concept.domain_id == 'Condition' and 
+            concept.standard_concept == 'S' and
             search_term.lower() in concept.concept_name.lower()):
             best_match = concept
             break
@@ -219,7 +219,7 @@ async def build_cardiovascular_cohort():
     
     # Step 1: Explore options
     concepts = await client.vocabulary.search("cardiovascular")
-    conditions = [c for c in concepts if c.domainId == 'Condition' and c.standardConcept == 'S']
+    conditions = [c for c in concepts if c.domain_id == 'Condition' and c.standard_concept == 'S']
     
     print("Available cardiovascular concepts:")
     for concept in conditions[:3]:
@@ -301,7 +301,7 @@ async def explore_medical_concept(search_term: str):
     
     # Search and filter
     concepts = await client.vocabulary.search(search_term)
-    conditions = [c for c in concepts if c.domainId == 'Condition' and c.standardConcept == 'S']
+    conditions = [c for c in concepts if c.domain_id == 'Condition' and c.standard_concept == 'S']
     
     print(f"Found {len(conditions)} condition concepts:")
     

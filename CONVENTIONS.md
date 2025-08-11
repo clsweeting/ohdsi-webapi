@@ -105,7 +105,7 @@ def concept(self, concept_id: int) -> Concept:
 
 ### ✅ ConceptSetService  
 - `list()`, `get(id)`, `create()`, `update()`, `delete()`
-- `resolve()`, `expression()`, `included_concepts()`, `generation_info()`
+- `expression()`, `included_concepts()`, `generation_info()`
 
 ### ✅ CohortService
 - `get(id)`, `create()`, `update()`, `delete()`

@@ -6,17 +6,13 @@ The OHDSI WebAPI client has been tested against the Atlas demo server (`https://
 
 ### ✅ Working Endpoints
 
-- **Individual concept retrieval**: `vocabulary.get_concept(id)` ✅
+- **Individual concept retrieval**: `vocabulary.concept(id)` ✅
 - **Concept search**: `vocabulary.search(query, filters...)` ✅ 
 - **Vocabulary domains**: `vocabulary.domains()` ✅  
 - **Concept set listing**: `concept_sets.list()` ✅
 - **Concept set retrieval**: `concept_sets.get(id)` ✅
 - **Concept set expressions**: `concept_sets.expression(id)` ✅
 - **Data sources**: `sources.list()` ✅
-
-### ⚠️ Known Issues with Demo Server
-
-- **Concept set resolve**: `concept_sets.resolve(id)` returns HTTP 404 for many concept sets
 
 ### Search Endpoint Fix
 
