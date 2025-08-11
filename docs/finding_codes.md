@@ -26,7 +26,7 @@ from ohdsi_webapi import WebApiClient
 client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 # Search for all concepts matching your term
-concepts = await client.vocabulary.search("cardiovascular")
+concepts = client.vocabulary.search("cardiovascular")
 print(f"Found {len(concepts)} concepts matching 'cardiovascular'")
 ```
 
@@ -56,7 +56,7 @@ This is the **critical step** - understanding how broad or narrow each concept i
 ```python
 # Check how many subtypes each concept includes
 for concept in conditions[:5]:
-    descendants = await client.vocabulary.descendants(concept.concept_id)
+    descendants = client.vocabulary.concept_descendants(concept.concept_id)
     print(f"{concept.concept_name}:")
     print(f"  → Includes {len(descendants)} more specific conditions")
     
@@ -104,7 +104,7 @@ specific_searches = [
 specific_codes = {}
 
 for search_term in specific_searches:
-    search_results = await client.vocabulary.search(search_term)
+    search_results = client.vocabulary.search(search_term)
     
     # Find the best standard condition concept
     best_match = None
@@ -126,46 +126,38 @@ for search_term in specific_searches:
 Before finalizing your concept choices, check how many patients they would include:
 
 ```python
-async def check_concept_size(concept_id: int, source_key: str):
+def check_concept_size(concept_id: int, source_key: str):
     """Check how many patients a concept would include"""
     
-    # Create test concept set
-    test_cs = client.cohorts.create_concept_set(concept_id, "Test Concept")
+    # Note: This is an advanced example showing the general approach.
+    # In practice, you would create concept sets and cohorts through the WebAPI
+    # to get actual patient counts for validation.
     
-    # Create minimal cohort to get counts
-    from ohdsi_webapi.models.cohort import CohortDefinition
-    test_cohort = CohortDefinition(
-        name="Concept Size Test",
-        expression=client.cohorts.create_base_cohort_expression([test_cs])
-    )
+    print(f"To validate concept {concept_id}:")
+    print("1. Create a concept set with this concept")
+    print("2. Build a cohort using that concept set")
+    print("3. Generate the cohort against your data source")
+    print("4. Check the resulting patient count")
+    print("5. Adjust concept selection based on results")
     
-    # Generate and get counts
-    created = await client.cohorts.create(test_cohort)
-    await client.cohorts.generate(created.id, source_key)
-    await client.cohorts.poll_generation(created.id, source_key)
-    counts = await client.cohorts.counts(created.id)
-    
-    patient_count = counts[0].subject_count if counts else 0
-    
-    # Clean up
-    await client.cohorts.delete(created.id)
-    
-    return patient_count
+    # For the specific implementation, see the cohorts documentation
+    return "See cohorts documentation for complete workflow"
 
-# Test different concept options
-sources = await client.sources.list()
-source_key = sources[0].source_key
+# Example of concept validation approach
+sources = client.sources()
+source_key = sources[0].source_key if sources else "EUNOMIA"
 
 for concept in conditions[:3]:
-    count = await check_concept_size(concept.concept_id, source_key)
-    print(f"{concept.concept_name}: {count:,} patients")
+    print(f"\\n{concept.concept_name} (ID: {concept.concept_id})")
+    print("  → Use this concept in a test cohort to validate size")
     
-    if count > 100000:
+    descendants = client.vocabulary.concept_descendants(concept.concept_id)
+    if len(descendants) > 1000:
         print("  ⚠️  Very broad - consider more specific subtypes")
-    elif count < 100:
+    elif len(descendants) < 5:
         print("  ⚠️  Very narrow - consider broader category")
     else:
-        print("  ✓  Good size for analysis")
+        print("  ✓  Good scope for analysis")
 ```
 
 ## Common Cardiovascular Disease Codes
@@ -212,68 +204,50 @@ Based on typical research needs, here are the most commonly used cardiovascular 
 Here's a complete example showing the decision process:
 
 ```python
-async def build_cardiovascular_cohort():
+def build_cardiovascular_cohort():
     """Complete example of finding and using cardiovascular codes"""
     
-    client = WebApiClient()
+    client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
     
     # Step 1: Explore options
-    concepts = await client.vocabulary.search("cardiovascular")
+    concepts = client.vocabulary.search("cardiovascular")
     conditions = [c for c in concepts if c.domain_id == 'Condition' and c.standard_concept == 'S']
     
     print("Available cardiovascular concepts:")
     for concept in conditions[:3]:
-        descendants = await client.vocabulary.descendants(concept.concept_id)
+        descendants = client.vocabulary.concept_descendants(concept.concept_id)
         print(f"  {concept.concept_id}: {concept.concept_name} ({len(descendants)} subtypes)")
     
     # Step 2: Choose based on research question
     
     # Option A: Broad cardiovascular disease study
-    broad_cs = client.cohorts.create_concept_set(
-        concept_id=194990,  # Cardiovascular disease
-        name="All Cardiovascular Disease",
-        include_descendants=True  # Include all 1,200+ subtypes
-    )
+    print("\\nOption A: Use broad cardiovascular disease concept")
+    broad_concept_id = 194990  # Cardiovascular disease
+    broad_descendants = client.vocabulary.concept_descendants(broad_concept_id)
+    print(f"Concept {broad_concept_id} includes {len(broad_descendants)} subtypes")
     
     # Option B: Specific major cardiovascular events
+    print("\\nOption B: Use specific cardiovascular events")
     major_events = [
         (4329847, "Myocardial infarction"),
         (444094, "Heart failure"),
         (381591, "Cerebrovascular accident")
     ]
     
-    specific_concept_sets = []
     for concept_id, name in major_events:
-        cs = client.cohorts.create_concept_set(concept_id, name)
-        specific_concept_sets.append(cs)
+        descendants = client.vocabulary.concept_descendants(concept_id)
+        print(f"  {name} ({concept_id}): {len(descendants)} subtypes")
     
-    # Step 3: Test with real data
-    sources = await client.sources.list()
-    source_key = sources[0].source_key
+    # Step 3: Create concept sets for use in cohorts
+    print("\\nTo create cohorts with these concepts:")
+    print("1. Use conceptset.create() to build concept sets")
+    print("2. Use cohortdefinition.create() to build cohorts")
+    print("3. See the cohorts documentation for complete workflow")
     
-    # Compare broad vs specific approaches
-    print("\\nPatient counts comparison:")
-    
-    # Broad approach
-    broad_results = await client.cohorts.build_incremental_cohort(
-        source_key=source_key,
-        base_name="Broad CVD Study",
-        concept_sets=[broad_cs],
-        filters=[{"type": "age", "min_age": 18}]
-    )
-    print(f"Broad CVD: {broad_results[-1][1]:,} patients")
-    
-    # Specific approach
-    for cs, (concept_id, name) in zip(specific_concept_sets, major_events):
-        specific_results = await client.cohorts.build_incremental_cohort(
-            source_key=source_key,
-            base_name=f"Specific: {name}",
-            concept_sets=[cs],
-            filters=[{"type": "age", "min_age": 18}]
-        )
-        print(f"{name}: {specific_results[-1][1]:,} patients")
-    
-    return broad_cs, specific_concept_sets
+    return conditions
+
+# Example usage
+cardiovascular_concepts = build_cardiovascular_cohort()
 ```
 
 ## Best Practices
@@ -291,23 +265,23 @@ async def build_cardiovascular_cohort():
 Here's a helper function you can use to interactively explore concepts:
 
 ```python
-async def explore_medical_concept(search_term: str):
+def explore_medical_concept(search_term: str):
     """Interactive tool to explore medical concepts"""
     
-    client = WebApiClient()
+    client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
     
     print(f"🔍 Exploring: '{search_term}'")
     print("=" * 50)
     
     # Search and filter
-    concepts = await client.vocabulary.search(search_term)
+    concepts = client.vocabulary.search(search_term)
     conditions = [c for c in concepts if c.domain_id == 'Condition' and c.standard_concept == 'S']
     
     print(f"Found {len(conditions)} condition concepts:")
     
     # Show options with scope
     for i, concept in enumerate(conditions[:10]):
-        descendants = await client.vocabulary.descendants(concept.concept_id)
+        descendants = client.vocabulary.concept_descendants(concept.concept_id)
         print(f"\\n{i+1}. {concept.concept_name}")
         print(f"    ID: {concept.concept_id}")
         print(f"    Scope: {len(descendants)} descendant conditions")
@@ -323,10 +297,10 @@ async def explore_medical_concept(search_term: str):
     return conditions
 
 # Usage examples:
-# await explore_medical_concept("diabetes")
-# await explore_medical_concept("cancer") 
-# await explore_medical_concept("cardiovascular")
-# await explore_medical_concept("mental health")
+# explore_medical_concept("diabetes")
+# explore_medical_concept("cancer") 
+# explore_medical_concept("cardiovascular")
+# explore_medical_concept("mental health")
 ```
 
 This systematic approach ensures you choose the right concept codes for your specific research needs, avoiding the common pitfalls of overly broad or narrow definitions.

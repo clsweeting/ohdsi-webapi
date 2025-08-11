@@ -163,7 +163,6 @@ concept_ids = [c.concept_id for c in concepts]  # Now you have OMOP IDs
 diabetes_icd = client.vocabulary.search("E11.9", vocabulary_id="ICD10CM", page_size=10)
 metformin_ndc = client.vocabulary.search("50096", vocabulary_id="NDC", page_size=10)
 ```
-```
 
 ### 5. Converting Source Codes to OMOP Concepts
 
@@ -201,6 +200,7 @@ for code, vocab, description in codes_to_lookup:
 
 **💡 Tip**: Individual searches (Method 2) are more reliable across different WebAPI versions.
 
+```python 
 for result in lookup_results:
     if result.standard_concept == "S":
         print(f"Standard concept: {result.concept_id} - {result.concept_name}")

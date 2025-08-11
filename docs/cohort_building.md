@@ -180,63 +180,6 @@ cohort_expression = {
     "censoringCriteria": []
 }
 ```
-
-## Incremental Filtering & Counts
-
-To see counts as you add each filter incrementally, you can:
-
-1. **Create base cohort** (just the primary criteria)
-2. **Add inclusion rules one by one** 
-3. **Generate and check counts** after each addition
-
-```python
-async def build_cohort_incrementally(client, source_key: str):
-    """Build a cohort step by step, showing counts at each stage"""
-    
-    # Step 1: Base cohort (diabetes diagnosis)
-    base_cohort = CohortDefinition(
-        name="Step 1: Diabetes diagnosis",
-        expression=create_base_expression()  # Just primary criteria
-    )
-    
-    cohort1 = await client.cohorts.create(base_cohort)
-    await client.cohorts.generate(cohort1.id, source_key)
-    status1 = await client.cohorts.poll_generation(cohort1.id, source_key)
-    counts1 = await client.cohorts.counts(cohort1.id)
-    print(f"Step 1 - Diabetes patients: {counts1[0].subject_count if counts1 else 0}")
-    
-    # Step 2: Add male gender filter
-    male_cohort = CohortDefinition(
-        name="Step 2: Male + Diabetes",
-        expression=add_male_filter(base_cohort.expression)
-    )
-    
-    cohort2 = await client.cohorts.create(male_cohort)
-    await client.cohorts.generate(cohort2.id, source_key)
-    status2 = await client.cohorts.poll_generation(cohort2.id, source_key)
-    counts2 = await client.cohorts.counts(cohort2.id)
-    print(f"Step 2 - Male diabetes patients: {counts2[0].subject_count if counts2 else 0}")
-    
-    # Step 3: Add age filter
-    age_cohort = CohortDefinition(
-        name="Step 3: Male + Age 40+ + Diabetes",
-        expression=add_age_filter(male_cohort.expression)
-    )
-    
-    cohort3 = await client.cohorts.create(age_cohort)
-    await client.cohorts.generate(cohort3.id, source_key)
-    status3 = await client.cohorts.poll_generation(cohort3.id, source_key)
-    counts3 = await client.cohorts.counts(cohort3.id)
-    print(f"Step 3 - Male 40+ diabetes patients: {counts3[0].subject_count if counts3 else 0}")
-    
-    # Get detailed inclusion rule statistics
-    inclusion_stats = await client.cohorts.inclusion_rules(cohort3.id, source_key)
-    for rule in inclusion_stats:
-        print(f"Inclusion rule '{rule.name}': {rule.person_count} people")
-    
-    return cohort3
-```
-
 ## Key Concepts
 
 ### Concept Sets
