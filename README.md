@@ -79,7 +79,7 @@ print(f"Available concept sets: {len(concept_sets)}")
 
 # Get vocabulary domains
 domains = client.vocabulary.domains()
-print(f"Available domains: {[d.domain_id for d in domains[:5]}...")
+print(f"Available domains: {[d['domainId'] for d in domains[:5]]}")
 
 client.close()
 ```
