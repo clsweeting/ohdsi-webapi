@@ -1,5 +1,9 @@
 # OHDSI WebAPI Client (Python)
 
+[![PyPI version](https://badge.fury.io/py/ohdsi-webapi-client.svg)](https://badge.fury.io/py/ohdsi-webapi-client)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 Alpha-stage Python client for interacting with an OHDSI WebAPI instance.
 
 ## MVP Scope
@@ -48,65 +52,60 @@ pip install ohdsi-webapi-client
 ## Quickstart
 ```python
 from ohdsi_webapi import WebApiClient
-import os
 
 # Uses OHDSI_WEBAPI_BASE_URL from .env if set, otherwise explicit URL
-base_url = os.getenv("OHDSI_WEBAPI_BASE_URL", "http://localhost:8080/WebAPI")
-client = WebApiClient(base_url=base_url)
+client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
-print(client.info.version())
-for src in client.sources.list():
-    print(src.sourceKey)
-concept = client.vocab.get_concept(201826)  # Metformin
-print(concept.conceptName)
+# Check WebAPI health and version
+info = client.info()
+print(f"WebAPI version: {info.version}")
 
-# WebAPI endpoint-style aliases also supported:
-domains = client.vocabulary.domains()  # Same as client.vocab.list_domains()
-concept_sets = client.conceptset.list()  # Same as client.concept_sets.list()
+# List available data sources
+sources = client.sources()
+for src in sources:
+    print(f"Source: {src.source_key} - {src.source_name}")
 
-# Build cohorts incrementally with counts at each step (async method)
-import asyncio
+# Search for concepts
+diabetes_concepts = client.vocabulary.search("type 2 diabetes", domain_id="Condition")
+print(f"Found {len(diabetes_concepts)} diabetes concepts")
 
-async def build_cohort_example():
-    diabetes_cs = client.cohorts.create_concept_set(201826, "Type 2 Diabetes")
-    results = await client.cohorts.build_incremental_cohort(
-        source_key="your_source",
-        base_name="Diabetes Study", 
-        concept_sets=[diabetes_cs],
-        filters=[
-            {"type": "gender", "gender": "male"},
-            {"type": "age", "min_age": 40},
-            {"type": "time_window", "concept_set_id": 0, "days_before": 730}
-        ]
-    )
+# Get a specific concept
+metformin = client.vocabulary.concept(201826)  # Metformin
+print(f"Concept: {metformin.concept_name}")
 
-    for i, (cohort, count) in enumerate(results):
-        print(f"Step {i+1}: {count:,} patients - {cohort.name}")
+# Work with concept sets
+concept_sets = client.conceptset()  # List all concept sets
+print(f"Available concept sets: {len(concept_sets)}")
 
-# To run: asyncio.run(build_cohort_example())
+# Get vocabulary domains
+domains = client.vocabulary.domains()
+print(f"Available domains: {[d.domain_id for d in domains[:5]}...")
 
 client.close()
 ```
 
 ## API Design Philosophy
 
-### REST Endpoint Mirroring
-This client follows a **predictable naming convention** that mirrors the WebAPI REST endpoints, making it intuitive for developers familiar with the HTTP API:
+### Predictable REST-Style Methods
+This client uses a **predictable naming convention** that mirrors WebAPI REST endpoints exactly, making it self-documenting for developers:
 
 | REST Endpoint | Python Method | Description |
 |--------------|---------------|-------------|
-| `/vocabulary/domains` | `client.vocabulary.domains()` | Get all domains |
-| `/vocabulary/vocabularies` | `client.vocabulary.vocabularies()` | Get all vocabularies |
-| `/vocabulary/concept/{id}` | `client.vocabulary.concept(id)` | Get a concept |
-| `/vocabulary/concept/{id}/descendants` | `client.vocabulary.concept_descendants(id)` | Get child concepts |
-| `/vocabulary/concept/{id}/related` | `client.vocabulary.concept_related(id)` | Get related concepts |
+| `GET /info` | `client.info()` | WebAPI version and health |
+| `GET /source/sources` | `client.sources()` | List data sources |
+| `GET /vocabulary/domains` | `client.vocabulary.domains()` | List all domains |
+| `GET /vocabulary/concept/{id}` | `client.vocabulary.concept(id)` | Get a concept |
+| `GET /conceptset/` | `client.conceptset()` | List concept sets |
+| `GET /conceptset/{id}` | `client.conceptset(id)` | Get concept set by ID |
+| `GET /conceptset/{id}/expression` | `client.conceptset_expression(id)` | Get concept set expression |
 
-**Naming Convention:**
-- **Base resources**: Use the plural noun (e.g., `vocabularies()`, `domains()`)
-- **Sub-resources**: Use underscore notation (e.g., `concept_descendants()`, `concept_related()`)
-- **Single items**: Use singular noun (e.g., `concept(id)`)
+**Why This Approach:**
+- **Self-documenting**: `client.conceptset()` clearly maps to `GET /conceptset/`
+- **Predictable**: If you know the REST endpoint, you know the Python method
+- **Beginner-friendly**: Easy to learn for engineers new to OHDSI
+- **No confusion**: One clear way to do each operation
 
-This approach tries to make the API self-documenting for developers who understand the underlying REST structure.
+See the [Supported Endpoints](docs/supported_endpoints.md) page for the complete mapping.
 
 
 ## Testing
@@ -129,12 +128,13 @@ Only GET/read-only endpoints are exercised (concept lookup & search). Write oper
 Spin up a local WebAPI + database (Docker) to safely test create/update/delete for concept sets and cohorts. (Compose file TBD.)
 
 ## Concept & Concept Sets Summary
-- `client.vocab.get_concept(id)` fetches a single concept (handles uppercase Atlas-style keys).
-- `client.vocab.search(query)` returns concepts matching text.
-- `client.vocab.descendants(id)` navigates hierarchy.
-- `client.concept_sets.create(name)` creates an empty concept set.
-- Modify `concept_set.expression` (Atlas JSON structure) then `client.concept_sets.update(cs)`.
-- `client.concept_sets.resolve(id)` expands expression to concrete included concepts.
+- `client.vocabulary.concept(id)` fetches a single concept by ID
+- `client.vocabulary.search(query)` returns concepts matching text
+- `client.vocabulary.concept_descendants(id)` navigates hierarchy
+- `client.conceptset()` lists all concept sets
+- `client.conceptset(id)` gets a specific concept set  
+- `client.conceptset_expression(id)` gets the concept set expression
+- `client.conceptset_items(id)` resolves expression to concrete included concepts
 
 ## Additional Documentation
 See the docs directory for deeper guides:
@@ -148,9 +148,8 @@ See the docs directory for deeper guides:
 - [Caching](docs/caching.md) - performance optimization with intelligent caching
 
 ## Roadmap
-See `ROADMAP.md` (to be added).Planned:
-- authentication.md – Auth strategies & configuration
-- jobs.md – Asynchronous job polling patterns
+- Auth strategies & configuration
+- Asynchronous job polling patterns
 
 
 ## License
