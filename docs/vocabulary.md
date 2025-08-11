@@ -95,7 +95,7 @@ results = client.vocab.search(
     query="diabetes",
     domain_id="Condition",        # Only conditions
     standard_concept="S",         # Only standard concepts
-    page_size=20
+    page_size=100                 # Default page size (increased from 20 for better UX)
 )
 
 for concept in results:
@@ -108,6 +108,9 @@ for concept in results:
 - `vocabulary_id` - Filter by vocabulary ("SNOMED", "RxNorm", etc.)
 - `concept_class_id` - Filter by concept class ("Clinical Finding", "Ingredient", etc.)
 - `standard_concept` - "S" for standard concepts (recommended for analysis)
+- `page_size` - Results per page (default: 100). Larger defaults help users discover pagination exists
+
+**💡 Pagination Tip**: The default page size is 100 (not 20) to make pagination more obvious. If you get exactly 100 results, there are likely more - use `page=2` to get the next batch.
 
 ### 3. Working with Concept Hierarchies
 
@@ -135,11 +138,29 @@ print(f"Found {len(related)} related concepts")
 When you have multiple concept IDs, batch them for better performance:
 
 ```python
-concept_ids = [201826, 1503297, 4548-4]  # diabetes, metformin, A1c
+concept_ids = [201826, 1503297, 3004410]  # diabetes, metformin, hemoglobin A1c
 concepts = client.vocab.concepts(concept_ids)  # Predictable naming
 
 for concept in concepts:
     print(f"{concept.concept_id}: {concept.concept_name} ({concept.domain_id})")
+```
+
+**⚠️ Important**: Use OMOP **concept IDs** (integers) like `201826`, not source **concept codes** like `"4548-4"`. The concepts() method expects numeric OMOP concept IDs.
+
+**💡 If you have source codes**: Use `lookup_identifiers()` to convert source codes to OMOP concept IDs:
+```python
+# Convert LOINC codes to OMOP concepts  
+loinc_codes = [("4548-4", "LOINC"), ("33747-0", "LOINC")]  # A1c, Anion gap
+concepts = client.vocab.lookup_identifiers(loinc_codes)
+concept_ids = [c.concept_id for c in concepts]  # Now you have OMOP IDs
+```
+
+**Note**: If `lookup_identifiers()` has issues with your WebAPI version, you can search for codes individually:
+```python
+# Alternative: search for specific codes
+diabetes_icd = client.vocab.search("E11.9", vocabulary_id="ICD10CM", page_size=10)
+metformin_ndc = client.vocab.search("50096", vocabulary_id="NDC", page_size=10)
+```
 ```
 
 ### 5. Converting Source Codes to OMOP Concepts
@@ -147,11 +168,36 @@ for concept in concepts:
 When you have codes from other systems (like ICD-10 or NDC codes), you need to map them to OMOP concepts:
 
 ```python
-# Look up codes from other systems
-lookup_results = client.vocab.lookup_identifiers([
-    {"identifier": "E11.9", "vocabularyId": "ICD10CM"},  # ICD-10 code
-    {"identifier": "50096", "vocabularyId": "NDC"},      # NDC drug code
-])
+# Method 1: Try bulk lookup (may not work on all WebAPI versions)
+try:
+    lookup_results = client.vocab.lookup_identifiers([
+        ("E11.9", "ICD10CM"),   # ICD-10 code (using tuple format)
+        ("50096", "NDC"),       # NDC drug code
+    ])
+    print(f"Found {len(lookup_results)} concepts via bulk lookup")
+except Exception as e:
+    print(f"Bulk lookup failed: {e}")
+    # Fallback to individual searches (see Method 2)
+
+# Method 2: Individual searches (more reliable)
+codes_to_lookup = [
+    ("E11.9", "ICD10CM", "Type 2 diabetes"),
+    ("50096", "NDC", "Metformin tablet"),
+]
+
+found_concepts = []
+for code, vocab, description in codes_to_lookup:
+    results = client.vocab.search(code, vocabulary_id=vocab, page_size=10)
+    # Look for exact code match
+    exact_match = next((c for c in results if c.concept_code == code), None)
+    if exact_match:
+        found_concepts.append(exact_match)
+        print(f"✓ {code} → {exact_match.concept_id}: {exact_match.concept_name}")
+    else:
+        print(f"✗ {code} not found in {vocab}")
+```
+
+**💡 Tip**: Individual searches (Method 2) are more reliable across different WebAPI versions.
 
 for result in lookup_results:
     if result.standard_concept == "S":
@@ -333,25 +379,9 @@ def build_diabetes_concept_set():
 
 ## API Method Reference
 
-### REST Endpoint to Python Method Mapping
+For a complete mapping of REST endpoints to Python methods, see the **[Supported Endpoints](supported_endpoints.md#📖-vocabulary--concepts)** documentation.
 
-The vocabulary service follows a predictable naming pattern that mirrors the REST API endpoints:
-
-| REST Endpoint | Python Method | Description |
-|--------------|---------------|-------------|
-| `/vocabulary/domains` | `list_domains()` | Get all available domains |
-| `/vocabulary/vocabularies` | `list_vocabularies()` | Get all available vocabularies |
-| `/vocabulary/concept/{id}` | `concept(id)` | Get a single concept |
-| `/vocabulary/concept/{id}/descendants` | `concept_descendants(id)` | Get child concepts |
-| `/vocabulary/concept/{id}/related` | `concept_related(id)` | Get related concepts |
-| Bulk concept lookup | `concepts(ids)` | Get multiple concepts |
-
-### Backwards Compatibility
-
-For backwards compatibility, these legacy method names are still supported:
-- `descendants()` → Use `concept_descendants()` instead
-- `related()` → Use `concept_related()` instead  
-- `bulk_get()` → Use `concepts()` instead
+The vocabulary service follows predictable naming patterns and maintains backwards compatibility with legacy method names.
 
 ### Method Details
 

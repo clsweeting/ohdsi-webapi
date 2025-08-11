@@ -55,7 +55,8 @@ class WebApiClient:
         )
         self._info_service = InfoService(self._http)
         self.info = PredictableInfoWrapper(self._info_service)  # Callable for REST pattern
-        self.sources = SourcesService(self._http)
+        self._sources_service = SourcesService(self._http)
+        self.sources = PredictableServiceWrapper(self._sources_service)  # Callable for REST pattern
         self.vocabulary = VocabularyService(self._http)  # Naming consistent with WebAPI path (/vocabulary/)
         self.vocab = self.vocabulary  # Alias for convenience
         self.concept_sets = ConceptSetService(self._http)
@@ -71,7 +72,6 @@ class WebApiClient:
         This enables calls like:
         - client.conceptset_expression(123) -> GET /conceptset/123/expression
         - client.cohortdefinition_generate(123, source) -> POST /cohortdefinition/123/generate/source
-        - client.source_sources() -> GET /source/sources
         - client.job(execution_id) -> GET /job/{execution_id}
         """
         # Handle conceptset_* predictable methods
@@ -83,10 +83,6 @@ class WebApiClient:
         elif name.startswith("cohortdefinition_"):
             sub_resource = name[17:]  # Remove "cohortdefinition_" prefix
             return self._create_cohortdefinition_sub_method(sub_resource)
-
-        # Handle source_sources() -> GET /source/sources
-        elif name == "source_sources":
-            return lambda: self.sources.list()
 
         # Handle job(execution_id) -> GET /job/{execution_id}
         elif name == "job":

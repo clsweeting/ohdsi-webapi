@@ -113,7 +113,7 @@ class VocabularyService:
         standard_concept: str | None = None,  # 'S','C', etc.
         invalid_reason: str | None = None,  # 'D','U', etc.
         page: int = 1,
-        page_size: int = 20,
+        page_size: int = 100,
         sort: str | None = None,
     ) -> list[Concept]:
         """Search for concepts by name or description.
@@ -134,7 +134,7 @@ class VocabularyService:
             Filter by validity ('D' for deleted, 'U' for updated).
         page : int, default 1
             Page number for pagination (1-based).
-        page_size : int, default 20
+        page_size : int, default 100
             Number of results per page (max typically 100).
         sort : str, optional
             Sort order specification.
@@ -450,50 +450,90 @@ class VocabularyService:
     ) -> list[Concept]:
         """Bulk resolve source codes to concepts.
 
-        identifiers: iterable of (code, vocabularyId) tuples OR dicts that already
-        conform to the WebAPI shape {identifier, vocabularyId, includeDescendants?, includeMapped?}.
-        include_descendants / include_mapped: default flags applied to tuple inputs
-        (not overriding explicit dict-provided flags).
-        Returns a flattened list of Concept objects (duplicates possible if multiple
-        identifiers map to same concept). If the WebAPI returns per-identifier grouping,
-        groups are flattened here for simplicity.
+        Parameters
+        ----------
+        identifiers : Iterable[tuple[str, str] | dict[str, Any]]
+            Either tuples of (code, vocabularyId) or dicts with identifier and vocabularyId.
+        include_descendants : bool, default False
+            Whether to include descendant concepts.
+        include_mapped : bool, default False
+            Whether to include mapped concepts.
+
+        Returns
+        -------
+        list[Concept]
+            List of resolved concepts.
+
+        Examples
+        --------
+        >>> # Using tuples
+        >>> codes = [("E11.9", "ICD10CM"), ("50096", "NDC")]
+        >>> concepts = client.vocab.lookup_identifiers(codes)
+        >>>
+        >>> # Using dicts
+        >>> codes = [{"identifier": "E11.9", "vocabularyId": "ICD10CM"}]
+        >>> concepts = client.vocab.lookup_identifiers(codes)
         """
         payload: list[dict[str, Any]] = []
         for item in identifiers:
             if isinstance(item, tuple):
                 code, vocab = item
-                payload.append(
-                    {
-                        "identifier": code,
-                        "vocabularyId": vocab,
-                        "includeDescendants": include_descendants,
-                        "includeMapped": include_mapped,
-                    }
-                )
+                entry = {
+                    "identifier": code,
+                    "vocabularyId": vocab,
+                }
             elif isinstance(item, dict):
-                obj = dict(item)  # shallow copy
-                obj.setdefault("includeDescendants", include_descendants)
-                obj.setdefault("includeMapped", include_mapped)
-                # Accept alternative key names
-                if "code" in obj and "identifier" not in obj:
-                    obj["identifier"] = obj.pop("code")
-                payload.append(obj)
-            else:  # pragma: no cover - defensive
+                entry = {
+                    "identifier": item.get("identifier") or item.get("code"),
+                    "vocabularyId": item.get("vocabularyId"),
+                }
+            else:
                 raise TypeError("Identifiers must be tuple or dict")
+
+            if include_descendants:
+                entry["includeDescendants"] = True
+            if include_mapped:
+                entry["includeMapped"] = True
+
+            payload.append(entry)
+
         if not payload:
             return []
-        data = self._http.post("/vocabulary/lookup/identifiers", json_body=payload)
-        concepts: list[Concept] = []
+
+        # Try the POST endpoint - if it fails, we'll need to use individual lookups
+        try:
+            data = self._http.post("/vocabulary/lookup/identifiers", json_body=payload)
+        except Exception:
+            # Fallback: use individual concept lookups via search
+            # This is a workaround if the bulk endpoint has issues
+            concepts: list[Concept] = []
+            for entry in payload:
+                try:
+                    # Search for the specific code in the specific vocabulary
+                    search_results = self.search(
+                        query=entry["identifier"],
+                        vocabulary_id=entry["vocabularyId"],
+                        page_size=10,  # Small page since we want exact matches
+                    )
+                    # Look for exact code match
+                    for concept in search_results:
+                        if concept.concept_code == entry["identifier"]:
+                            concepts.append(concept)
+                            break
+                except Exception:
+                    continue
+            return concepts
+
+        # Parse successful response
+        concepts = []
         if isinstance(data, list):
             for entry in data:
-                # Some implementations return a wrapper like {"concept": {...}} or direct concept-like dict
                 if isinstance(entry, dict):
                     if "concept" in entry and isinstance(entry["concept"], dict):
                         concepts.append(self._concept_from_any(entry["concept"]))
                     else:
-                        # Try direct concept
                         try:
                             concepts.append(self._concept_from_any(entry))
-                        except Exception:  # pragma: no cover
+                        except Exception:
                             continue
         return concepts

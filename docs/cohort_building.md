@@ -302,12 +302,12 @@ This approach gives you fine-grained control over cohort building and lets you s
 For most use cases, you can use our simplified helper methods instead of building the complex JSON structures manually:
 
 ```python
-from ohdsi_webapi import OHDSIWebAPIClient
+from ohdsi_webapi import WebApiClient
 
 async def example_incremental_cohort():
     """Example: Males over 40 with diabetes in last 2 years"""
     
-    client = OHDSIWebAPIClient()
+    client = WebApiClient()
     
     # Get your data source
     sources = await client.sources.list()
@@ -850,7 +850,7 @@ When users ask for broad terms like "cardiovascular disease", "diabetes", or "ca
 async def explore_cardiovascular_concepts():
     """Explore what 'cardiovascular disease' actually includes"""
     
-    client = OHDSIWebAPIClient()
+    client = WebApiClient()
     
     # Search for cardiovascular concepts
     cvd_concepts = await client.vocabulary.search("cardiovascular disease")
@@ -888,7 +888,7 @@ async def explore_cardiovascular_concepts():
 async def build_cvd_cohort_with_options():
     """Give users multiple options for cardiovascular disease"""
     
-    client = OHDSIWebAPIClient()
+    client = WebApiClient()
     
     # Option 1: Very broad - all cardiovascular disease
     broad_cvd = client.cohorts.create_concept_set(
@@ -948,7 +948,7 @@ async def build_cvd_cohort_with_options():
 async def interactive_concept_explorer(search_term: str):
     """Help users interactively build concept sets"""
     
-    client = OHDSIWebAPIClient()
+    client = WebApiClient()
     
     print(f"🔍 Exploring: '{search_term}'")
     print("=" * 40)
@@ -1002,7 +1002,7 @@ async def interactive_concept_explorer(search_term: str):
 async def validate_concept_set_size(concept_id: int, source_key: str):
     """Check how many patients a concept set would include"""
     
-    client = OHDSIWebAPIClient()
+    client = WebApiClient()
     
     # Create test concept set
     test_cs = client.cohorts.create_concept_set(concept_id, "Test Concept Set")

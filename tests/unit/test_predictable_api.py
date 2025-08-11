@@ -71,13 +71,14 @@ class TestPredictableAPI:
         assert hasattr(client.info, "get")
         assert hasattr(client.info, "version")
 
-    def test_source_sources_predictable_method(self, client):
-        """Test that source_sources method is available."""
-        # Should be available via __getattr__
-        assert hasattr(client, "source_sources")
-
+    def test_sources_callable_interface(self, client):
+        """Test that sources is callable for REST-style access."""
         # Should be callable
-        assert callable(client.source_sources)
+        assert callable(client.sources)
+
+        # Should delegate to underlying service methods
+        assert hasattr(client.sources, "list")
+        assert hasattr(client.sources, "iter")
 
     def test_job_predictable_method(self, client):
         """Test that job method is available."""

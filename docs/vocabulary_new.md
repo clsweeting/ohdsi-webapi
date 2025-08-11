@@ -95,7 +95,7 @@ results = client.vocab.search(
     query="diabetes",
     domain_id="Condition",        # Only conditions
     standard_concept="S",         # Only standard concepts
-    page_size=20
+    page_size=100                 # Default page size (increased from 20 for better UX)
 )
 
 for concept in results:
@@ -135,7 +135,7 @@ print(f"Found {len(parents)} broader categories")
 When you have multiple concept IDs, batch them for better performance:
 
 ```python
-concept_ids = [201826, 1503297, 4548-4]  # diabetes, metformin, A1c
+concept_ids = [201826, 1503297, 3004410]  # diabetes, metformin, hemoglobin A1c
 concepts = client.vocab.bulk_get(concept_ids)
 
 for concept in concepts:
