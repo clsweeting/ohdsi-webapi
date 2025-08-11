@@ -133,7 +133,6 @@ expr = {
 cs_new = client.conceptset.create("Metformin Only", expression=expr)
 print(cs_new.id)
 ```
-```
 
 ## Updating Expression
 
@@ -168,8 +167,6 @@ print(len(overlap))  # structure depends on server version
 gen_info = client.conceptset_generationinfo(cs.id)  # GET /conceptset/{id}/generationinfo
 print(gen_info)  # May be empty or unsupported
 ```
-```
-May be empty or unsupported.
 
 ## Best Practices
 - Keep concept sets focused: separate drug exposure and condition concept sets rather than mixing domains.
@@ -187,7 +184,6 @@ try:
     cs = client.conceptset(999999)  # GET /conceptset/999999
 except WebApiError as e:
     print("Not found", e.status_code)
-```
 ```
 
 ## Roadmap Enhancements (Future)

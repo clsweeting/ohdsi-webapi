@@ -23,8 +23,8 @@ The caching system generates **human-readable cache keys** that make debugging a
 
 ```python
 # Method call
-client.vocabulary.get_concept(201826)
-# Generated cache key: "VocabularyService.get_concept(201826)"
+client.vocabulary.concept(201826)
+# Generated cache key: "VocabularyService.concept(201826)"
 
 # Search with parameters  
 client.vocabulary.search("diabetes", domain_id="Condition", page_size=50)
@@ -33,7 +33,7 @@ client.vocabulary.search("diabetes", domain_id="Condition", page_size=50)
 
 ### Key Generation Process
 
-1. **Method name**: Uses clean service and method name (e.g., `VocabularyService.get_concept`)
+1. **Method name**: Uses clean service and method name (e.g., `VocabularyService.concept`)
 2. **Arguments**: All positional arguments included (excluding `self`)
 3. **Keyword arguments**: Sorted alphabetically for consistency
 4. **Special parameters**: `force_refresh` is excluded from cache keys
@@ -43,10 +43,10 @@ client.vocabulary.search("diabetes", domain_id="Condition", page_size=50)
 The following methods are automatically cached:
 
 ### High-Value Targets
-- `client.concept_sets.list()` - 1 hour cache (expensive: 20K+ items)
-- `client.concept_sets.get(id)` - 30 minute cache (stable individual sets)
-- `client.concept_sets.resolve(id)` - 30 minute cache (resolved concept lists)
-- `client.vocabulary.get_concept(id)` - 1 hour cache (concepts rarely change)
+- `client.conceptset()` - 1 hour cache (expensive: 20K+ items)
+- `client.conceptset(id)` - 30 minute cache (stable individual sets)
+- `client.conceptset_items(id)` - 30 minute cache (resolved concept lists)
+- `client.vocabulary.concept(id)` - 1 hour cache (concepts rarely change)
 - `client.vocabulary.domains()` - 30 minute cache (stable metadata)
 
 ### Performance Impact
@@ -56,10 +56,10 @@ from ohdsi_webapi import WebApiClient
 client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 # First call: hits API (~10 seconds for 27K concept sets)
-concept_sets = client.concept_sets.list()
+concept_sets = client.conceptset()
 
 # Subsequent calls: instant (from cache for 1 hour)
-concept_sets = client.concept_sets.list()  # ~10,000x faster!
+concept_sets = client.conceptset() # much faster
 ```
 
 ## Force Refresh
@@ -68,10 +68,10 @@ Bypass the cache for any method by adding `force_refresh=True`:
 
 ```python
 # Normal cached call
-concept = client.vocabulary.get_concept(201826)
+concept = client.vocabulary.concept(201826)
 
 # Force fresh data from server (bypasses cache)
-fresh_concept = client.vocabulary.get_concept(201826, force_refresh=True)
+fresh_concept = client.vocabulary.concept(201826, force_refresh=True)
 ```
 
 ### How force_refresh Works
@@ -133,13 +133,6 @@ export OHDSI_CACHE_TTL=60  # 1 minute
 export OHDSI_CACHE_ENABLED=false
 ```
 
-### Batch Processing
-```python
-# Clear cache between batches to free memory
-for batch in batches:
-    process_batch(batch)
-    client.clear_cache()
-```
 
 ## Troubleshooting
 
@@ -151,7 +144,7 @@ export OHDSI_CACHE_ENABLED=false
 ### Debug Cache Behavior
 ```python
 print("Before:", client.cache_stats())
-result = client.concept_sets.list()
+result = client.conceptset()
 print("After:", client.cache_stats())
 ```
 
