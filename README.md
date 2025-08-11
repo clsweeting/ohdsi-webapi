@@ -88,6 +88,27 @@ async def build_cohort_example():
 client.close()
 ```
 
+## API Design Philosophy
+
+### REST Endpoint Mirroring
+This client follows a **predictable naming convention** that mirrors the WebAPI REST endpoints, making it intuitive for developers familiar with the HTTP API:
+
+| REST Endpoint | Python Method | Description |
+|--------------|---------------|-------------|
+| `/vocabulary/domains` | `client.vocabulary.domains()` | Get all domains |
+| `/vocabulary/vocabularies` | `client.vocabulary.vocabularies()` | Get all vocabularies |
+| `/vocabulary/concept/{id}` | `client.vocabulary.concept(id)` | Get a concept |
+| `/vocabulary/concept/{id}/descendants` | `client.vocabulary.concept_descendants(id)` | Get child concepts |
+| `/vocabulary/concept/{id}/related` | `client.vocabulary.concept_related(id)` | Get related concepts |
+
+**Naming Convention:**
+- **Base resources**: Use the plural noun (e.g., `vocabularies()`, `domains()`)
+- **Sub-resources**: Use underscore notation (e.g., `concept_descendants()`, `concept_related()`)
+- **Single items**: Use singular noun (e.g., `concept(id)`)
+
+This approach tries to make the API self-documenting for developers who understand the underlying REST structure.
+
+
 ## Testing
 ### Unit tests (mocked, fast)
 ```bash
@@ -110,7 +131,7 @@ Spin up a local WebAPI + database (Docker) to safely test create/update/delete f
 ## Concept & Concept Sets Summary
 - `client.vocab.get_concept(id)` fetches a single concept (handles uppercase Atlas-style keys).
 - `client.vocab.search(query)` returns concepts matching text.
-- `client.vocab.descendants(id)` navigates hierarchy (ancestors not available in WebAPI).
+- `client.vocab.descendants(id)` navigates hierarchy.
 - `client.concept_sets.create(name)` creates an empty concept set.
 - Modify `concept_set.expression` (Atlas JSON structure) then `client.concept_sets.update(cs)`.
 - `client.concept_sets.resolve(id)` expands expression to concrete included concepts.

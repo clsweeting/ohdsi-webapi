@@ -184,6 +184,34 @@ class VocabularyService:
             return concepts[start_idx:end_idx]
         return []
 
+    def concept_descendants(self, concept_id: int) -> list[Concept]:
+        """Get all descendant concepts of a given concept.
+
+        Predictable method name that matches REST endpoint pattern:
+        GET /vocabulary/concept/{id}/descendants/ → concept_descendants(id)
+
+        Parameters
+        ----------
+        concept_id : int
+            The OMOP concept ID to find descendants for.
+
+        Returns
+        -------
+        list of Concept
+            All concepts that are descendants of the input concept.
+
+        Examples
+        --------
+        >>> # Get all subtypes of diabetes
+        >>> diabetes_descendants = client.vocabulary.concept_descendants(201826)
+        >>> for desc in diabetes_descendants[:5]:
+        ...     print(f"  {desc.concept_id}: {desc.concept_name}")
+        """
+        data = self._http.get(f"/vocabulary/concept/{concept_id}/descendants")
+        if isinstance(data, list):
+            return [self._concept_from_any(d) for d in data]
+        return []
+
     def descendants(self, concept_id: int) -> list[Concept]:
         """Get all descendant concepts of a given concept.
 
@@ -206,8 +234,41 @@ class VocabularyService:
         >>> diabetes_descendants = client.vocabulary.descendants(201826)
         >>> for desc in diabetes_descendants[:5]:
         ...     print(f"  {desc.concept_id}: {desc.concept_name}")
+
+        Notes
+        -----
+        This method is an alias for concept_descendants(). The new predictable naming
+        is: concept_descendants() to match GET /vocabulary/concept/{id}/descendants/
         """
-        data = self._http.get(f"/vocabulary/concept/{concept_id}/descendants")
+        return self.concept_descendants(concept_id)
+
+    def concept_related(self, concept_id: int) -> list[Concept]:
+        """Get concepts related to the given concept.
+
+        Predictable method name that matches REST endpoint pattern:
+        GET /vocabulary/concept/{id}/related/ → concept_related(id)
+
+        Returns concepts that are related through various relationships
+        (maps to, is a, etc.) as defined in the OMOP vocabulary.
+
+        Parameters
+        ----------
+        concept_id : int
+            The OMOP concept ID to find related concepts for.
+
+        Returns
+        -------
+        list of Concept
+            All concepts related to the input concept through vocabulary relationships.
+
+        Examples
+        --------
+        >>> # Get related concepts
+        >>> related = client.vocabulary.concept_related(201826)
+        >>> for rel in related[:5]:
+        ...     print(f"  {rel.concept_id}: {rel.concept_name}")
+        """
+        data = self._http.get(f"/vocabulary/concept/{concept_id}/related")
         if isinstance(data, list):
             return [self._concept_from_any(d) for d in data]
         return []
@@ -235,13 +296,38 @@ class VocabularyService:
         >>> related = client.vocabulary.related(201826)
         >>> for rel in related[:5]:
         ...     print(f"  {rel.concept_id}: {rel.concept_name}")
-        """
-        data = self._http.get(f"/vocabulary/concept/{concept_id}/related")
-        if isinstance(data, list):
-            return [self._concept_from_any(d) for d in data]
-        return []
 
-    def bulk_get(self, concept_ids: Iterable[int]) -> list[Concept]:
+        Notes
+        -----
+        This method is an alias for concept_related(). The new predictable naming
+        is: concept_related() to match GET /vocabulary/concept/{id}/related/
+        """
+        return self.concept_related(concept_id)
+
+    def concepts(self, concept_ids: Iterable[int]) -> list[Concept]:
+        """Fetch multiple concepts by ID in a single request.
+
+        Predictable method name that matches REST endpoint pattern:
+        POST /vocabulary/concepts → concepts([ids])
+
+        Parameters
+        ----------
+        concept_ids : Iterable[int]
+            List or iterable of OMOP concept IDs to retrieve.
+
+        Returns
+        -------
+        list of Concept
+            List of concepts with full metadata, in arbitrary order.
+
+        Examples
+        --------
+        >>> # Get multiple concepts efficiently
+        >>> concept_ids = [201826, 1503297, 4548]  # diabetes, metformin, A1c
+        >>> concepts = client.vocabulary.concepts(concept_ids)
+        >>> for concept in concepts:
+        ...     print(f"{concept.concept_id}: {concept.concept_name}")
+        """
         ids = list(concept_ids)
         if not ids:
             return []
@@ -249,6 +335,74 @@ class VocabularyService:
         if isinstance(data, list):
             return [self._concept_from_any(d) for d in data]
         return []
+
+    def bulk_get(self, concept_ids: Iterable[int]) -> list[Concept]:
+        """Fetch multiple concepts by ID in a single request.
+
+        Parameters
+        ----------
+        concept_ids : Iterable[int]
+            List or iterable of OMOP concept IDs to retrieve.
+
+        Returns
+        -------
+        list of Concept
+            List of concepts with full metadata, in arbitrary order.
+
+        Notes
+        -----
+        This method is an alias for concepts(). The new predictable naming
+        is: concepts() to match POST /vocabulary/concepts
+        """
+        return self.concepts(concept_ids)
+
+    @cached_method(ttl_seconds=1800)  # 30 minutes for vocabularies (fairly stable)
+    def list_vocabularies(self, *, force_refresh: bool = False) -> list[dict[str, Any]]:
+        """Return available vocabularies.
+
+        Returns
+        -------
+        list of dict
+            List of vocabulary information with vocabularyId, vocabularyName, etc.
+
+        Examples
+        --------
+        >>> vocabularies = client.vocab.list_vocabularies()
+        >>> for vocab in vocabularies:
+        ...     print(f"{vocab['vocabularyId']}: {vocab['vocabularyName']}")
+        """
+        data = self._http.get("/vocabulary/vocabularies")
+        out: list[dict[str, Any]] = []
+        if isinstance(data, list):
+            for d in data:
+                if isinstance(d, dict):
+                    if "VOCABULARY_ID" in d and "vocabularyId" not in d:
+                        out.append(
+                            {
+                                "vocabularyId": d.get("VOCABULARY_ID"),
+                                "vocabularyName": d.get("VOCABULARY_NAME") or d.get("VOCABULARY_ID"),
+                                "vocabularyConcept": d.get("VOCABULARY_CONCEPT"),
+                                "vocabularyReference": d.get("VOCABULARY_REFERENCE"),
+                                "vocabularyVersion": d.get("VOCABULARY_VERSION"),
+                            }
+                        )
+                    else:
+                        # Pass through existing keys but ensure vocabularyId present
+                        out.append(
+                            {
+                                "vocabularyId": d.get("vocabularyId") or d.get("VOCABULARY_ID") or d.get("id"),
+                                "vocabularyName": d.get("vocabularyName")
+                                or d.get("VOCABULARY_NAME")
+                                or d.get("name")
+                                or d.get("vocabularyId"),
+                                **{k: v for k, v in d.items() if k not in {"VOCABULARY_ID", "VOCABULARY_NAME"}},
+                            }
+                        )
+        return out
+
+    def vocabularies(self, *, force_refresh: bool = False) -> list[dict[str, Any]]:
+        """Alias for list_vocabularies() to match WebAPI endpoint naming (/vocabulary/vocabularies)."""
+        return self.list_vocabularies(force_refresh=force_refresh)
 
     @cached_method(ttl_seconds=1800)  # 30 minutes for domains (fairly stable)
     def list_domains(self, *, force_refresh: bool = False) -> list[dict[str, Any]]:

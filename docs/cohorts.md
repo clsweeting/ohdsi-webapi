@@ -2,6 +2,23 @@
 
 Cohorts define groups of persons meeting inclusion criteria over time. The WebAPI stores a cohort *definition* (JSON expression) and can *generate* the result set (cohort entry rows) in a target CDM source.
 
+
+## Cohort Logic 
+
+Concept Sets are built from OMOP Vocabulary concepts. They're essentialy lists of standard concepts which can be referenced in Cohort Logic. See [Concept Sets](./concept_sets.md)
+
+Concept Sets do NOT include: 
+- Age ranges (e.g., “patients aged 40–65”)
+- Gender (male/female/other)
+- Race/Ethnicity
+- Time-based constraints (e.g., “first diagnosis within past 12 months”)
+- Logical conditions between concepts (“must have both X and Y”)
+
+Those kinds of criteria are defined in the cohort logic in ATLAS/WebAPI, where you combine:
+- Demographics
+- Date/time filters
+- Clinical events matched against Concept Sets
+
 ## Core Concepts
 - Cohort Definition: JSON expression (similar to Atlas export) describing inclusion logic.
 - Generation: Execution of the definition against a specific CDM source to materialize cohort entries.

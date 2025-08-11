@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any
 
+from ohdsi_cohort_schemas import CohortExpression
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -11,15 +11,21 @@ class CohortDefinition(BaseModel):
     name: str
     description: str | None = None
     expression_type: str = Field(default="SIMPLE_EXPRESSION", alias="expressionType")
-    expression: dict[str, Any] | None = None
+    expression: CohortExpression | None = None
 
     @field_validator("expression", mode="before")
     @classmethod
     def parse_expression(cls, v):
         if isinstance(v, str):
             try:
-                return json.loads(v)
-            except json.JSONDecodeError:
+                data = json.loads(v)
+                return CohortExpression.model_validate(data)
+            except (json.JSONDecodeError, ValueError):
+                return None
+        elif isinstance(v, dict):
+            try:
+                return CohortExpression.model_validate(v)
+            except ValueError:
                 return None
         return v
 

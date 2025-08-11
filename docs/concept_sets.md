@@ -1,8 +1,30 @@
 # Concept Sets
 
-Concept sets define groups of concepts (e.g., drugs for diabetes) using a structured expression that can include/exclude concepts and descendants/mapped concepts. They are reusable in cohort definitions and analyses.
+The OMOP Vocabulary maps many different source vocabularies (ICD-10, Read Codes, MedDRA, etc.) into standard concepts.
+
+When you want to say “patients with Type 2 diabetes” or “prescriptions for statins”, you don’t want to hand-pick ICD-10 or SNOMED codes each time.   Concept Sets let you bundle all those relevant concepts into a single reusable set, so your definition is consistent, transparent & portable. 
+
+Concept Sets in OHDSI are only about clinical or vocabulary concepts —
+so they cover conditions, drugs, procedures, measurements, devices, etc. — but not demographics like age, sex, or visit type.
+
+
+## OMOP Vocabulary Concepts 
+
+Concept Sets are built from OMOP Vocabulary concepts, which include domains such as:
+- Condition — e.g., Type 2 diabetes mellitus, Asthma
+- Drug — e.g., Metformin 500 mg oral tablet
+- Procedure — e.g., Appendectomy
+- Measurement — e.g., HbA1c measurement
+- Observation — e.g., Smoking status
+- Device — e.g., Pacemaker
+- Specimen, Visit, and other clinical domains
+
+They’re essentially lists of standard concepts that you can later reference in [cohort logic](cohorts.md).
+
+
 
 ## Key Ideas
+
 - A Concept Set stores a concise expression (seed concepts + flags) rather than an enumerated list.
 - Resolving a concept set expands the expression into concrete included concepts (applying descendants/mapped logic).
 - You can fetch, update, and reuse concept sets across analyses.
