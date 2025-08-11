@@ -2,18 +2,7 @@
 
 ## What are (Data) Sources?
 
-A **data source** in OHDSI represents a specific database containing h```python
-# Get source details to understand what you're working with
-sources = client.sources.list()
-
-for source in sources:
-    # Note: source info details would need additional API calls
-    print(f"""
-    Source: {source.source_name}
-    Key: {source.source_key}
-    Dialect: {source.source_dialect}
-    """)
-```ta that has been converted to the [OMOP Common Data Model (CDM)](https://ohdsi.github.io/CommonDataModel/) format. Think of it as a pointer to a particular healthcare dataset that OHDSI tools can analyze.
+A **data source** in OHDSI represents a specific database containing healthcare data that has been converted to the [OMOP Common Data Model (CDM)](https://ohdsi.github.io/CommonDataModel/) format. Think of it as a pointer to a particular healthcare dataset that OHDSI tools can analyze.
 
 Examples of data sources might include:
 - A hospital's electronic health records (EHR) 
@@ -55,15 +44,15 @@ Each data source has these key properties:
 First, discover what data sources are available:
 
 ```python
-from ohdsi_webapi import WebApiClient
+from ohdsi_webapi_client import WebAPIClient
 
-client = WebApiClient("https://your-webapi-url.com")
+client = WebAPIClient("https://your-webapi-url.com")
 
 # Get list of all configured sources
-sources = client.sources.list()
+sources = client.get_sources()
 
 for source in sources:
-    print(f"Key: {source.source_key}, Name: {source.source_name}")
+    print(f"Key: {source.sourceKey}, Name: {source.sourceName}")
 ```
 
 ### 2. Understanding sourceKey
@@ -92,24 +81,24 @@ cohort_def = {
 }
 
 # 2. Save the definition to WebAPI
-saved_cohort = client.cohorts.create(cohort_def)
+saved_cohort = client.create_cohort_definition(cohort_def)
 cohort_id = saved_cohort.id
 
 # 3. Generate the cohort against a specific data source
-client.cohorts.generate(
-    cohort_id=cohort_id,
+client.generate_cohort(
+    cohort_definition_id=cohort_id,
     source_key="SYNPUF"  # Use the sourceKey here
 )
 
 # 4. Check generation status and get results
-status = client.cohorts.generation_status(cohort_id, "SYNPUF")
-if status.status == "COMPLETED":
-    results = client.cohorts.counts(cohort_id)
+status = client.get_generation_status(cohort_id, "SYNPUF")
+if status.is_complete:
+    results = client.get_cohort_results(cohort_id, "SYNPUF")
 ```
 
 ### What Happens Behind the Scenes
 
-When you call `client.cohorts.generate(cohort_id, "SYNPUF")`, WebAPI:
+When you call `generate_cohort(cohort_id, "SYNPUF")`, WebAPI:
 
 1. **Looks up the source**: Finds the database connection details for `"SYNPUF"`
 2. **Resolves concepts**: Translates your medical concepts (like "diabetes") into specific codes for that database
@@ -152,23 +141,22 @@ for source in sources:
 
 ```python
 try:
-    client.cohorts.generate(cohort_id, "SYNPUF")
-except Exception as e:
-    if "not found" in str(e).lower():
-        print("Source 'SYNPUF' is not configured or accessible")
-    else:
-        print(f"Cohort generation failed: {e}")
+    client.generate_cohort(cohort_id, "SYNPUF")
+except SourceNotFoundError:
+    print("Source 'SYNPUF' is not configured or accessible")
+except GenerationError as e:
+    print(f"Cohort generation failed: {e.message}")
 ```
 
 ### Checking Source Availability
 
 ```python
 # Verify a source exists before using it
-available_keys = [s.source_key for s in client.sources.list()]
+available_keys = [s.sourceKey for s in client.get_sources()]
 
 if "SYNPUF" in available_keys:
     # Safe to use this source
-    client.cohorts.generate(cohort_id, "SYNPUF")
+    client.generate_cohort(cohort_id, "SYNPUF")
 else:
     print("SYNPUF source not available")
 ```
@@ -176,10 +164,10 @@ else:
 ## Common Questions
 
 **Q: How do I know which source to use for my research?**  
-A: It depends on your research question. Use `client.sources.list()` to see available sources and their characteristics.
+A: It depends on your research question. Use `get_sources()` and `get_source_info()` to understand the characteristics of each available source.
 
 **Q: Can I run the same cohort on multiple sources?**  
-A: Yes! This is common for validation studies. Just call `client.cohorts.generate()` with different `source_key` values.
+A: Yes! This is common for validation studies. Just call `generate_cohort()` with different `source_key` values.
 
 **Q: What if a source is unavailable or down?**  
 A: The API will return an error. Always handle exceptions and have fallback logic for critical applications.

@@ -138,7 +138,9 @@ Spin up a local WebAPI + database (Docker) to safely test create/update/delete f
 
 ## Additional Documentation
 See the docs directory for deeper guides:
+- [Supported Endpoints](docs/supported_endpoints.md) - which WebAPI endpoints are supported
 - Finding Codes: [docs/finding_codes.md](docs/finding_codes.md)
+- OHDSI (data) sources: [docs/sources.md](docs/sources.md)
 - Vocabulary & Concepts: [docs/vocabulary.md](docs/vocabulary.md)
 - Concept Sets: [docs/concept_sets.md](docs/concept_sets.md)
 - Cohorts: [docs/cohorts.md](docs/cohorts.md)

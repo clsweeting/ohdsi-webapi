@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ohdsi-webapi-client"
-version = "0.1.0-alpha"
+version = "0.2.0-alpha"
 description = "Python client for OHDSI WebAPI (MVP: info, sources, vocabulary, concept sets, cohorts)."
 authors = ["Your Name <you@example.com>"]
 license = "Apache-2.0"
