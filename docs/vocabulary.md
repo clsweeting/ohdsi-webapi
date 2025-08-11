@@ -138,7 +138,7 @@ When you have multiple concept IDs, batch them for better performance:
 ```python
 concept_ids = [201826, 1503297, 3004410]  # diabetes, metformin, hemoglobin A1c
 
-# The concepts() method automatically handles WebAPI compatibility
+# The concepts() method uses reliable individual calls
 concepts = client.vocabulary.concepts(concept_ids)
 
 for concept in concepts:
@@ -147,7 +147,7 @@ for concept in concepts:
 
 **⚠️ Important**: Use OMOP **concept IDs** (integers) like `201826`, not source **concept codes** like `"4548-4"`. The concepts() method expects numeric OMOP concept IDs.
 
-**⚠️ WebAPI Compatibility**: The `concepts()` method automatically tries bulk retrieval first (`POST /vocabulary/concepts`) and falls back to individual `concept()` calls if the bulk endpoint is unavailable. This ensures compatibility across different WebAPI versions.
+**⚠️ WebAPI Compatibility**: The `concepts()` method uses individual `concept()` calls for maximum reliability across all WebAPI versions. While some WebAPI instances support bulk operations, they're inconsistently available, so we use the reliable approach.
 
 **💡 If you have source codes**: Use `lookup_identifiers()` to convert source codes to OMOP concept IDs:
 ```python
@@ -312,12 +312,12 @@ results = client.vocabulary.search("diabetes", standard_concept="S")
 results = client.vocabulary.search("diabetes")  # No filter
 ```
 
-### 2. Batch API Calls When Possible
+### 2. Use concepts() for Multiple Concept Retrieval
 ```python
-# ✅ Good - automatic fallback handles WebAPI compatibility
+# ✅ Good - clean, reliable approach
 concepts = client.vocabulary.concepts([201826, 1503297, 4548])
 
-# ❌ Inefficient - bypassing the smart batching
+# ❌ Verbose - manual looping when concepts() method exists
 concepts = []
 for concept_id in [201826, 1503297, 4548]:
     concepts.append(client.vocabulary.concept(concept_id))

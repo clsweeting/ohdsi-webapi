@@ -306,10 +306,10 @@ class VocabularyService:
         return self.concept_related(concept_id)
 
     def concepts(self, concept_ids: Iterable[int]) -> list[Concept]:
-        """Fetch multiple concepts by ID in a single request.
+        """Fetch multiple concepts by ID using reliable individual requests.
 
-        Predictable method name that matches REST endpoint pattern:
-        POST /vocabulary/concepts → concepts([ids])
+        Uses individual concept() calls for maximum compatibility across
+        all WebAPI versions and configurations.
 
         Parameters
         ----------
@@ -320,6 +320,7 @@ class VocabularyService:
         -------
         list of Concept
             List of concepts with full metadata, in arbitrary order.
+            Skips any concept IDs that cannot be retrieved.
 
         Examples
         --------
@@ -333,28 +334,20 @@ class VocabularyService:
         if not ids:
             return []
         
-        # Try bulk retrieval first
-        try:
-            data = self._http.post("/vocabulary/concepts", json_body=ids)
-            if isinstance(data, list):
-                return [self._concept_from_any(d) for d in data]
-        except (NotFoundError, WebApiError):
-            # Fallback to individual concept retrieval for WebAPI versions
-            # that don't support the bulk endpoint
-            concepts = []
-            for concept_id in ids:
-                try:
-                    concept = self.concept(concept_id)
-                    concepts.append(concept)
-                except (NotFoundError, WebApiError):
-                    # Skip individual concepts that can't be retrieved
-                    continue
-            return concepts
+        # Use individual concept calls for reliability across all WebAPI versions
+        concepts = []
+        for concept_id in ids:
+            try:
+                concept = self.concept(concept_id)
+                concepts.append(concept)
+            except (NotFoundError, WebApiError):
+                # Skip individual concepts that can't be retrieved
+                continue
         
-        return []
+        return concepts
 
     def bulk_get(self, concept_ids: Iterable[int]) -> list[Concept]:
-        """Fetch multiple concepts by ID in a single request.
+        """Fetch multiple concepts by ID using individual requests.
 
         Parameters
         ----------
@@ -369,7 +362,7 @@ class VocabularyService:
         Notes
         -----
         This method is an alias for concepts(). The new predictable naming
-        is: concepts() to match POST /vocabulary/concepts
+        is: concepts() which uses reliable individual concept() calls.
         """
         return self.concepts(concept_ids)
 
