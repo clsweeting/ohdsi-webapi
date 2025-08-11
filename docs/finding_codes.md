@@ -23,7 +23,7 @@ Start by searching for your medical term of interest:
 ```python
 from ohdsi_webapi import WebApiClient
 
-client = WebApiClient()
+client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 # Search for all concepts matching your term
 concepts = await client.vocabulary.search("cardiovascular")

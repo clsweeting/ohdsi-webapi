@@ -66,7 +66,7 @@ The vocabulary data lives in these key tables:
 ```python
 from ohdsi_webapi import WebApiClient
 
-client = WebApiClient("https://your-webapi-url.com")
+client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 ```
 
 ### 1. Looking Up a Specific Concept

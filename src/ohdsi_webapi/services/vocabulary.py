@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Iterable
 
 from ..cache import cached_method
+from ..exceptions import NotFoundError, WebApiError
 from ..http import HttpExecutor
 from ..models.vocabulary import Concept
 
@@ -337,7 +338,7 @@ class VocabularyService:
             data = self._http.post("/vocabulary/concepts", json_body=ids)
             if isinstance(data, list):
                 return [self._concept_from_any(d) for d in data]
-        except Exception:
+        except (NotFoundError, WebApiError):
             # Fallback to individual concept retrieval for WebAPI versions
             # that don't support the bulk endpoint
             concepts = []
@@ -345,7 +346,7 @@ class VocabularyService:
                 try:
                     concept = self.concept(concept_id)
                     concepts.append(concept)
-                except Exception:
+                except (NotFoundError, WebApiError):
                     # Skip individual concepts that can't be retrieved
                     continue
             return concepts
