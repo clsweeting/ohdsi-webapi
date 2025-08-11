@@ -141,12 +141,13 @@ By running the same cohort definition against multiple sources, researchers can:
 sources = client.sources()
 
 for source in sources:
-    info = client.get_source_info(source.source_key)
     print(f"""
-    Source: {source.source_name}
-    Patients: {info.person_count:,}
-    Data Range: {info.min_observation_date} to {info.max_observation_date}
+    Source: {source.source_name} ({source.source_key})
+    Database ID: {source.source_id}
     """)
+    
+# Note: Detailed source info like patient counts may require additional
+# endpoints that vary by WebAPI version - check your WebAPI documentation
 ```
 
 ### Error Handling

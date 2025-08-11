@@ -333,7 +333,7 @@ class VocabularyService:
         ids = list(concept_ids)
         if not ids:
             return []
-        
+
         # Use individual concept calls for reliability across all WebAPI versions
         concepts = []
         for concept_id in ids:
@@ -343,7 +343,7 @@ class VocabularyService:
             except (NotFoundError, WebApiError):
                 # Skip individual concepts that can't be retrieved
                 continue
-        
+
         return concepts
 
     def bulk_get(self, concept_ids: Iterable[int]) -> list[Concept]:

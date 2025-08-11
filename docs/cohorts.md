@@ -1,6 +1,6 @@
 # Cohorts
 
-Cohorts define groups of persons meeting inclusion criteria over time. The WebAPI stores a cohort *definition* (JSON expression) and can *generate* the result set (cohort entry rows) in a target CDM source.
+Cohorts define groups of persons meeting inclusion criteria over time. Thstatus = client.cohorts.poll_generation(cohort_id=123, source_key="EUNOMIA") WebAPI stores a cohort *definition* (JSON expression) and can *generate* the result set (cohort entry rows) in a target CDM source.
 
 
 ## Cohort Logic 
@@ -33,7 +33,7 @@ client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 ## Fetch Existing Cohort Definition
 ```python
-cohort = client.cohorts.get(5)
+cohort = client.cohortdefinition(5)
 print(cohort.name, cohort.expression_type)
 ```
 The `expression` is a nested structure; this client stores it as a raw `dict`.
@@ -52,7 +52,7 @@ expression = {
   "ConceptSets": []
 }
 cohort_def = CohortDefinition(name="Sample Cohort", expression=expression)
-created = client.cohorts.create(cohort_def)
+created = client.cohortdefinition.create(cohort_def)
 print(created.id)
 ```
 (Real expressions are typically composed using Atlas or a builder tool; future helpers may be added.)
@@ -60,27 +60,29 @@ print(created.id)
 ## Updating a Cohort
 ```python
 created.name = "Sample Cohort v2"
-updated = client.cohorts.update(created)
+updated = client.cohortdefinition.update(created.id, created)
 ```
 
 ## Deleting a Cohort
 ```python
-client.cohorts.delete(updated.id)
+client.cohortdefinition.delete(updated.id)
 ```
 Use with caution—irreversible.
 
 ## Generating a Cohort
-You need a source key (from `client.sources.list()`) for a CDM with a results schema configured.
+You need a source key (from `client.sources()`) for a CDM with a results schema configured.
 ```python
-source_key = client.sources.list()[0].source_key
-status = client.cohorts.generate(cohort_id=cohort.id, source_key=source_key)
+sources = client.sources()
+source_key = sources[0].source_key
+status = client.cohortdefinition_generate(cohort.id, source_key)
 print(status.status)
 ```
 This returns an initial status—often a background job.
 
 ## Polling for Completion
 ```python
-final_status = client.cohorts.poll_generation(cohort_id=cohort.id, source_key=source_key, interval=10, timeout=1800)
+final_# Poll for completion
+status = client.cohorts.poll_generation(cohort_id=cohort_id, source_key="EUNOMIA")
 print(final_status.status)
 ```
 Terminal statuses: COMPLETED, FAILED, STOPPED.

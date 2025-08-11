@@ -139,10 +139,10 @@ print(cs_new.id)
 ```python
 # Update full ConceptSet object 
 cs_new.expression = expr
-cs_new = client.conceptset.update(cs_new.id, cs_new)  # PUT /conceptset/{id}
+cs_new = client.conceptset.update(cs_new)  # PUT /conceptset/{id}
 
 # Or update just the expression 
-client.conceptset_expression.set(cs_new.id, expr)  # POST /conceptset/{id}/expression
+client.concept_sets.set_expression(cs_new.id, expr)  # POST /conceptset/{id}/expression
 ```
 
 ## Other Operations
@@ -157,7 +157,7 @@ print(csv_text.splitlines()[:5])
 ### Comparing Two Concept Sets
 ```python
 # Compare overlap between concept sets
-overlap = client.conceptset.compare(concept_sets[0].id, concept_sets[1].id)  # POST /conceptset/compare
+overlap = client.concept_sets.compare(concept_sets[0].id, concept_sets[1].id)  # POST /conceptset/compare
 print(len(overlap))  # structure depends on server version
 ```
 
