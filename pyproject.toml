@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "ohdsi-webapi-client"
-version = "0.3.0"
+version = "0.3.1"
 description = "Python client for OHDSI WebAPI (MVP: info, sources, vocabulary, concept sets, cohorts)."
 authors = ["Your Name <you@example.com>"]
 license = "Apache-2.0"
 readme = "README.md"
 packages = [{ include = "ohdsi_webapi", from = "src" }]
 keywords = ["OHDSI", "WebAPI", "OMOP", "ETL", "Cohort", "Healthcare"]
-homepage = "https://github.com/your-org/ohdsi-webapi-client"
-repository = "https://github.com/your-org/ohdsi-webapi-client"
+homepage = "https://github.com/clsweeting/ohdsi-webapi"
+repository = "https://github.com/clsweeting/ohdsi-webapi"
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Python :: 3",
