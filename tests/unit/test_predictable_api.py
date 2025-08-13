@@ -1,44 +1,46 @@
-"""Tests for predictable API naming patterns that mirror REST endpoints."""
+"""Tests for explicit REST-style convenience methods and service interfaces."""
 
 import pytest
 from ohdsi_webapi import WebApiClient
 
 
-class TestPredictableAPI:
-    """Test the predictable API naming convention."""
+class TestExplicitAPI:
+    """Test the explicit API methods and service interfaces."""
 
     @pytest.fixture()
     def client(self):
         """Create a test client."""
         return WebApiClient("https://test.example.com")
 
-    def test_conceptset_callable_interface(self, client):
-        """Test that conceptset is callable for REST-style access."""
-        # Should be callable
-        assert callable(client.conceptset)
+    def test_core_service_interfaces(self, client):
+        """Test that core service objects are available."""
+        # Core services should exist
+        assert hasattr(client, "concept_sets")
+        assert hasattr(client, "cohorts")
+        assert hasattr(client, "vocabulary")
+        assert hasattr(client, "vocab")
+        assert hasattr(client, "info")
+        assert hasattr(client, "sources")
+        assert hasattr(client, "jobs")
 
-        # Should delegate to underlying service methods
-        assert hasattr(client.conceptset, "list")
-        assert hasattr(client.conceptset, "get")
-        assert hasattr(client.conceptset, "create")
-        assert hasattr(client.conceptset, "update")
-        assert hasattr(client.conceptset, "delete")
+        # Vocabulary alias should work
+        assert client.vocab is client.vocabulary
 
-    def test_cohortdefinition_callable_interface(self, client):
-        """Test that cohortdefinition is callable for REST-style access."""
-        # Should be callable
-        assert callable(client.cohortdefinition)
+        # Services should have their standard methods
+        assert hasattr(client.concept_sets, "list")
+        assert hasattr(client.concept_sets, "get")
+        assert hasattr(client.concept_sets, "create")
+        assert hasattr(client.concept_sets, "expression")
+        assert hasattr(client.concept_sets, "resolve")
 
-        # Should delegate to underlying service methods
-        assert hasattr(client.cohortdefinition, "list")
-        assert hasattr(client.cohortdefinition, "get")
-        assert hasattr(client.cohortdefinition, "create")
-        assert hasattr(client.cohortdefinition, "update")
-        assert hasattr(client.cohortdefinition, "delete")
+        assert hasattr(client.cohorts, "list")
+        assert hasattr(client.cohorts, "get")
+        assert hasattr(client.cohorts, "generate")
+        assert hasattr(client.cohorts, "generation_status")
 
-    def test_conceptset_subresource_methods(self, client):
-        """Test that conceptset sub-resource methods are dynamically available."""
-        # These should be available via __getattr__
+    def test_conceptset_convenience_methods(self, client):
+        """Test that conceptset convenience methods are explicitly available."""
+        # These should be explicit attributes (not dynamic)
         assert hasattr(client, "conceptset_expression")
         assert hasattr(client, "conceptset_items")
         assert hasattr(client, "conceptset_export")
@@ -50,9 +52,15 @@ class TestPredictableAPI:
         assert callable(client.conceptset_export)
         assert callable(client.conceptset_generationinfo)
 
-    def test_cohortdefinition_subresource_methods(self, client):
-        """Test that cohortdefinition sub-resource methods are dynamically available."""
-        # These should be available via __getattr__
+        # Should be the same as the service methods
+        assert client.conceptset_expression == client.concept_sets.expression
+        assert client.conceptset_items == client.concept_sets.resolve
+        assert client.conceptset_export == client.concept_sets.export
+        assert client.conceptset_generationinfo == client.concept_sets.generation_info
+
+    def test_cohortdefinition_convenience_methods(self, client):
+        """Test that cohortdefinition convenience methods are explicitly available."""
+        # These should be explicit attributes (not dynamic)
         assert hasattr(client, "cohortdefinition_generate")
         assert hasattr(client, "cohortdefinition_info")
         assert hasattr(client, "cohortdefinition_inclusionrules")
@@ -62,88 +70,73 @@ class TestPredictableAPI:
         assert callable(client.cohortdefinition_info)
         assert callable(client.cohortdefinition_inclusionrules)
 
-    def test_info_callable_interface(self, client):
-        """Test that info is callable for REST-style access."""
-        # Should be callable
-        assert callable(client.info)
+        # Should be the same as the service methods
+        assert client.cohortdefinition_generate == client.cohorts.generate
+        assert client.cohortdefinition_info == client.cohorts.generation_status
+        assert client.cohortdefinition_inclusionrules == client.cohorts.inclusion_rules
 
-        # Should delegate to underlying service methods
-        assert hasattr(client.info, "get")
-        assert hasattr(client.info, "version")
+    def test_job_convenience_methods(self, client):
+        """Test that job convenience methods are available."""
+        # Should have explicit job status method
+        assert hasattr(client, "job_status")
+        assert callable(client.job_status)
+        assert client.job_status == client.jobs.status
 
-    def test_sources_callable_interface(self, client):
-        """Test that sources is callable for REST-style access."""
-        # Should be callable
-        assert callable(client.sources)
-
-        # Should delegate to underlying service methods
-        assert hasattr(client.sources, "list")
-        assert hasattr(client.sources, "iter")
-
-    def test_job_predictable_method(self, client):
-        """Test that job method is available."""
-        # Should be available via __getattr__
-        assert hasattr(client, "job")
-
-        # Should be callable
-        assert callable(client.job)
-
-    def test_backwards_compatibility(self, client):
-        """Test that existing service-based API still works."""
-        # Original service attributes should exist
-        assert hasattr(client, "concept_sets")
-        assert hasattr(client, "cohorts")
-        assert hasattr(client, "vocabulary")
-        assert hasattr(client, "vocab")
-
-        # Original methods should be callable
+    def test_service_method_compatibility(self, client):
+        """Test that service-based API still works as primary interface."""
+        # Original service methods should be callable
         assert callable(client.concept_sets.list)
         assert callable(client.concept_sets.get)
         assert callable(client.cohorts.list)
         assert callable(client.cohorts.get)
         assert callable(client.vocabulary.search)
+        assert callable(client.info.get)
+        assert callable(client.sources.list)
 
-    def test_vocabulary_predictable_methods(self, client):
-        """Test that vocabulary service has predictable methods."""
-        # Vocabulary should support both full name and alias
-        assert hasattr(client, "vocabulary")
-        assert hasattr(client, "vocab")
-        assert client.vocab is client.vocabulary
-
-        # Should have predictable method names
+    def test_vocabulary_methods(self, client):
+        """Test that vocabulary service has expected methods."""
+        # Should have standard vocabulary methods
         assert hasattr(client.vocabulary, "concept_descendants")
         assert hasattr(client.vocabulary, "concept_related")
-        assert hasattr(client.vocabulary, "concepts")
-        assert hasattr(client.vocabulary, "vocabularies")
-        assert hasattr(client.vocabulary, "domains")
+        assert hasattr(client.vocabulary, "search")
+        assert hasattr(client.vocabulary, "list_vocabularies")
+        assert hasattr(client.vocabulary, "list_domains")
 
-    def test_unknown_subresource_raises_error(self, client):
-        """Test that unknown sub-resource methods raise appropriate errors."""
-        with pytest.raises(AttributeError, match="Unknown conceptset sub-resource"):
-            _ = client.conceptset_unknown_method
-
-        with pytest.raises(AttributeError, match="Unknown cohortdefinition sub-resource"):
-            _ = client.cohortdefinition_unknown_method
+        # Methods should be callable
+        assert callable(client.vocabulary.search)
+        assert callable(client.vocabulary.concept_descendants)
 
     def test_unknown_attribute_raises_error(self, client):
-        """Test that completely unknown attributes raise AttributeError."""
-        with pytest.raises(AttributeError, match="object has no attribute"):
+        """Test that unknown attributes raise AttributeError."""
+        with pytest.raises(AttributeError):
             _ = client.completely_unknown_attribute
 
-    def test_predictable_wrapper_delegation(self, client):
-        """Test that PredictableServiceWrapper properly delegates attributes."""
-        # Wrapper should delegate all service methods
-        wrapper = client.conceptset
+        with pytest.raises(AttributeError):
+            _ = client.unknown_convenience_method
 
-        # Check that delegation works for common methods
-        assert hasattr(wrapper, "list")
-        assert hasattr(wrapper, "get")
-        assert hasattr(wrapper, "create")
+    def test_no_dynamic_method_generation(self, client):
+        """Test that we don't have dynamic method generation anymore."""
+        # These should NOT exist (we removed the dynamic __getattr__ magic)
+        assert not hasattr(client, "conceptset_unknown_method")
+        assert not hasattr(client, "cohortdefinition_unknown_method")
 
-        # The delegated methods should be callable and equivalent
-        assert callable(wrapper.list)
-        assert callable(wrapper.get)
-        assert callable(wrapper.create)
+        # No callable wrappers anymore
+        assert not callable(getattr(client, "conceptset", None))
+        assert not callable(getattr(client, "cohortdefinition", None))
 
-        # Wrapper should be callable itself
-        assert callable(wrapper)
+    def test_cache_management_methods(self, client):
+        """Test that cache management methods are available."""
+        assert hasattr(client, "clear_cache")
+        assert hasattr(client, "cache_stats")
+        assert callable(client.clear_cache)
+        assert callable(client.cache_stats)
+
+    def test_context_manager_support(self, client):
+        """Test that context manager protocol is supported."""
+        assert hasattr(client, "__enter__")
+        assert hasattr(client, "__exit__")
+        assert hasattr(client, "close")
+
+        # Should be usable as context manager
+        with client:
+            pass  # Should not raise

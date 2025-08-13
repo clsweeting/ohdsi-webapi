@@ -7,5 +7,3 @@ from .env import load_env
 load_env()
 
 __all__ = ["WebApiClient"]
-
-__version__ = "0.1.0"
