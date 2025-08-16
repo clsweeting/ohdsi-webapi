@@ -41,7 +41,7 @@ class CohortDefinition(BaseModel):
         data = super().model_dump(**kwargs)
 
         # If expression is a CohortExpression object, convert it to dict
-        if self.expression and hasattr(self.expression, "model_dump"):
+        if isinstance(self.expression, CohortExpression):
             data["expression"] = self.expression.model_dump(
                 by_alias=kwargs.get("by_alias", False), exclude_none=kwargs.get("exclude_none", False)
             )
