@@ -23,7 +23,7 @@ This client follows a **predictable naming pattern** that mirrors WebAPI REST en
 
 - **Base endpoints**: `/info` → `client.info()`, `/conceptset/` → `client.conceptset()`, `/cohortdefinition/` → `client.cohortdefinition()`
 - **Resource by ID**: `/conceptset/{id}` → `client.conceptset(id)`, `/cohortdefinition/{id}` → `client.cohortdefinition(id)`, `/job/{id}` → `client.job(id)`
-- **Sub-resources**: `/conceptset/{id}/expression` → `client.conceptset_expression(id)`, `/source/sources` → `client.sources()`
+- **Sub-resources**: `/conceptset/{id}/expression` → `client.conceptset_expression(id)`, `/source/sources` → `client.sources.list()`
 - **Actions**: `/cohortdefinition/{id}/generate/{source}` → `client.cohortdefinition_generate(id, source)`
 
 This makes the Python code self-documenting - if you see `client.conceptset()`, you immediately know it calls `GET /conceptset/`.
@@ -38,7 +38,7 @@ This makes the Python code self-documenting - if you see `client.conceptset()`, 
 
 | WebAPI Endpoint | Python Method | Description |
 |----------------|---------------|-------------|
-| `GET /source/sources` | `client.sources()` | List all configured data sources |
+| `GET /source/sources` | `client.sources.list()` | List all configured data sources |
 
 ### 📖 Vocabulary & Concepts
 
@@ -122,7 +122,7 @@ cohort = client.cohortdefinition.create({
 })
 
 # 4. Generate on a data source
-sources = client.sources()
+sources = client.sources.list()
 source_key = sources[0].source_key
 status = client.cohortdefinition_generate(cohort.id, source_key)
 
@@ -137,7 +137,7 @@ final_status = client.cohortdefinition_info(cohort.id)
 info = client.info()
 
 # List available data sources
-sources = client.sources()
+sources = client.sources.list()
 
 # Search vocabulary
 domains = client.vocabulary.domains()

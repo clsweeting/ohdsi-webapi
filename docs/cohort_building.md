@@ -260,7 +260,7 @@ async def example_incremental_cohort():
     client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
     
     # Get your data source
-    sources = await client.sources.list()
+    sources = client.sources.list()
     source_key = sources[0].source_key  # Use first available source
     
     # Define what we're looking for using the unified models
@@ -922,7 +922,7 @@ async def build_cvd_cohort_with_options():
         specific_concept_sets.append(cs)
     
     # Option 3: Let user see counts for different approaches
-    sources = await client.sources.list()
+    sources = client.sources.list()
     source_key = sources[0].source_key
     
     print("🔍 Cardiovascular Disease Cohort Options:")
