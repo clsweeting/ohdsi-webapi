@@ -24,28 +24,35 @@ A cohort definition consists of:
 Here's how you'd build a cohort for "males over 40 who have had diabetes in the last 2 years":
 
 ```python
-# 1. Define concept sets for diabetes
+from ohdsi_cohort_schemas import ConceptSetExpression, ConceptSetItem, Concept
+
+# 1. Define concept sets for diabetes using the unified models
+diabetes_concept = Concept(
+    concept_id=201826,
+    concept_name="Type 2 diabetes mellitus",
+    standard_concept="S",
+    concept_code="44054006",
+    concept_class_id="Clinical Finding",
+    vocabulary_id="SNOMED",
+    domain_id="Condition"
+)
+
+diabetes_concept_item = ConceptSetItem(
+    concept=diabetes_concept,
+    include_descendants=True,
+    include_mapped=False,
+    is_excluded=False
+)
+
+diabetes_concept_expression = ConceptSetExpression(
+    items=[diabetes_concept_item]
+)
+
+# Convert to WebAPI format when needed
 diabetes_concepts = {
     "id": 0,
     "name": "Type 2 Diabetes",
-    "expression": {
-        "items": [
-            {
-                "concept": {
-                    "conceptId": 201826,  # Type 2 diabetes mellitus
-                    "conceptName": "Type 2 diabetes mellitus",
-                    "standardConcept": "S",
-                    "conceptCode": "44054006",
-                    "conceptClassId": "Clinical Finding",
-                    "vocabularyId": "SNOMED",
-                    "domainId": "Condition"
-                },
-                "includeDescendants": true,
-                "includeMapped": false,
-                "isExcluded": false
-            }
-        ]
-    }
+    "expression": diabetes_concept_expression.model_dump(by_alias=True)
 }
 
 # 2. Build the cohort definition
@@ -250,14 +257,33 @@ from ohdsi_webapi import WebApiClient
 async def example_incremental_cohort():
     """Example: Males over 40 with diabetes in last 2 years"""
     
-    client = WebApiClient()
+    client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
     
     # Get your data source
     sources = await client.sources.list()
     source_key = sources[0].source_key  # Use first available source
     
-    # Define what we're looking for
-    diabetes_cs = client.cohorts.create_concept_set(201826, "Type 2 Diabetes")
+    # Define what we're looking for using the unified models
+    from ohdsi_cohort_schemas import ConceptSetExpression, ConceptSetItem, Concept
+    
+    diabetes_concept = Concept(
+        concept_id=201826,
+        concept_name="Type 2 diabetes mellitus",
+        standard_concept="S",
+        concept_code="44054006",
+        concept_class_id="Clinical Finding",
+        vocabulary_id="SNOMED",
+        domain_id="Condition"
+    )
+    
+    diabetes_item = ConceptSetItem(
+        concept=diabetes_concept,
+        include_descendants=True,
+        include_mapped=False,
+        is_excluded=False
+    )
+    
+    diabetes_cs = ConceptSetExpression(items=[diabetes_item])
     
     # Define filters to apply incrementally
     filters = [
@@ -395,13 +421,35 @@ expression = client.cohorts.add_exclusion_death(
 async def heart_failure_study_cohort():
     """Real-world example: Heart failure study with comprehensive criteria"""
     
-    client = WebApiClient()
+    from ohdsi_webapi import WebApiClient
+    from ohdsi_cohort_schemas import ConceptSetExpression, ConceptSetItem, Concept
     
-    # Define concept sets
-    heart_failure_cs = client.cohorts.create_concept_set(444094, "Heart Failure")
-    cancer_cs = client.cohorts.create_concept_set(443392, "Cancer", True)
-    chemotherapy_cs = client.cohorts.create_concept_set(21601782, "Chemotherapy", True)
-    cardiac_surgery_cs = client.cohorts.create_concept_set(4336464, "Cardiac Surgery", True)
+    client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
+    
+    # Define concept sets using unified models
+    def create_concept_set(concept_id: int, name: str, include_descendants: bool = True):
+        # Note: In real usage, you'd fetch the full concept details
+        concept = Concept(
+            concept_id=concept_id,
+            concept_name=name,
+            standard_concept="S",
+            domain_id="Condition"  # Simplified for example
+        )
+        
+        item = ConceptSetItem(
+            concept=concept,
+            include_descendants=include_descendants,
+            include_mapped=False,
+            is_excluded=False
+        )
+        
+        return ConceptSetExpression(items=[item])
+    
+    # Create all needed concept sets
+    heart_failure_cs = create_concept_set(444094, "Heart Failure")
+    cancer_cs = create_concept_set(443392, "Cancer", True)
+    chemotherapy_cs = create_concept_set(21601782, "Chemotherapy", True)
+    cardiac_surgery_cs = create_concept_set(4336464, "Cardiac Surgery", True)
     
     concept_sets = [heart_failure_cs, cancer_cs, chemotherapy_cs, cardiac_surgery_cs]
     
@@ -793,7 +841,9 @@ When users ask for broad terms like "cardiovascular disease", "diabetes", or "ca
 async def explore_cardiovascular_concepts():
     """Explore what 'cardiovascular disease' actually includes"""
     
-    client = WebApiClient()
+    from ohdsi_webapi import WebApiClient
+    
+    client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
     
     # Search for cardiovascular concepts
     cvd_concepts = await client.vocabulary.search("cardiovascular disease")
@@ -801,7 +851,7 @@ async def explore_cardiovascular_concepts():
     print(f"Found {len(cvd_concepts)} concepts for 'cardiovascular disease':")
     for concept in cvd_concepts[:10]:  # Show first 10
         print(f"  {concept.concept_id}: {concept.concept_name}")
-        print(f"    Domain: {concept.domainId}, Standard: {concept.standardConcept}")
+        print(f"    Domain: {concept.domain_id}, Standard: {concept.standard_concept}")
     
     # Look for high-level parent concepts
     high_level = [c for c in cvd_concepts if "disease" in c.concept_name.lower() 
@@ -831,14 +881,31 @@ async def explore_cardiovascular_concepts():
 async def build_cvd_cohort_with_options():
     """Give users multiple options for cardiovascular disease"""
     
-    client = WebApiClient()
+    from ohdsi_webapi import WebApiClient
+    from ohdsi_cohort_schemas import ConceptSetExpression, ConceptSetItem, Concept
+    
+    client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
     
     # Option 1: Very broad - all cardiovascular disease
-    broad_cvd = client.cohorts.create_concept_set(
-        concept_id=194990,  # "Cardiovascular disease" 
-        name="All Cardiovascular Disease",
-        include_descendants=True  # Includes ALL subtypes
-    )
+    def create_concept_set(concept_id: int, name: str, include_descendants: bool = True):
+        # Note: In real usage, you'd fetch full concept details from vocabulary
+        concept = Concept(
+            concept_id=concept_id,
+            concept_name=name,
+            standard_concept="S",
+            domain_id="Condition"
+        )
+        
+        item = ConceptSetItem(
+            concept=concept,
+            include_descendants=include_descendants,
+            include_mapped=False,
+            is_excluded=False
+        )
+        
+        return ConceptSetExpression(items=[item])
+    
+    broad_cvd = create_concept_set(194990, "All Cardiovascular Disease", True)
     
     # Option 2: Specific conditions only
     specific_conditions = [
@@ -851,7 +918,7 @@ async def build_cvd_cohort_with_options():
     # Create separate concept sets for each
     specific_concept_sets = []
     for concept_id, name in specific_conditions:
-        cs = client.cohorts.create_concept_set(concept_id, name, include_descendants=True)
+        cs = create_concept_set(concept_id, name, True)
         specific_concept_sets.append(cs)
     
     # Option 3: Let user see counts for different approaches
@@ -891,7 +958,9 @@ async def build_cvd_cohort_with_options():
 async def interactive_concept_explorer(search_term: str):
     """Help users interactively build concept sets"""
     
-    client = WebApiClient()
+    from ohdsi_webapi import WebApiClient
+    
+    client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
     
     print(f"🔍 Exploring: '{search_term}'")
     print("=" * 40)
@@ -902,19 +971,19 @@ async def interactive_concept_explorer(search_term: str):
     # 2. Group by domain and standard status
     domains = {}
     for concept in concepts:
-        domain = concept.domainId
+        domain = concept.domain_id
         if domain not in domains:
             domains[domain] = []
         domains[domain].append(concept)
     
     print("📋 Found concepts by domain:")
     for domain, domain_concepts in domains.items():
-        standard = [c for c in domain_concepts if c.standardConcept == 'S']
+        standard = [c for c in domain_concepts if c.standard_concept == 'S']
         print(f"  {domain}: {len(standard)} standard concepts")
     
     # 3. Show top-level concepts (likely parents)
     condition_concepts = domains.get('Condition', [])
-    standard_conditions = [c for c in condition_concepts if c.standardConcept == 'S']
+    standard_conditions = [c for c in condition_concepts if c.standard_concept == 'S']
     
     print(f"\n🎯 Top condition concepts for '{search_term}':")
     for i, concept in enumerate(standard_conditions[:10]):
@@ -945,15 +1014,33 @@ async def interactive_concept_explorer(search_term: str):
 async def validate_concept_set_size(concept_id: int, source_key: str):
     """Check how many patients a concept set would include"""
     
-    client = WebApiClient()
+    from ohdsi_webapi import WebApiClient
+    from ohdsi_webapi.models.cohort import CohortDefinition
+    from ohdsi_cohort_schemas import ConceptSetExpression, ConceptSetItem, Concept
     
-    # Create test concept set
-    test_cs = client.cohorts.create_concept_set(concept_id, "Test Concept Set")
+    client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
+    
+    # Create test concept set using unified models
+    test_concept = Concept(
+        concept_id=concept_id,
+        concept_name="Test Concept",
+        standard_concept="S",
+        domain_id="Condition"
+    )
+    
+    test_item = ConceptSetItem(
+        concept=test_concept,
+        include_descendants=True,
+        include_mapped=False,
+        is_excluded=False
+    )
+    
+    test_cs = ConceptSetExpression(items=[test_item])
     
     # Create minimal cohort to get counts
     test_cohort = CohortDefinition(
         name="Concept Set Size Test",
-        expression=client.cohorts.create_base_cohort_expression([test_cs])
+        expression={"ConceptSets": [test_cs.model_dump(by_alias=True)]}  # Simplified
     )
     
     # Generate and get counts

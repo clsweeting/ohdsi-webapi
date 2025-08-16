@@ -2,22 +2,23 @@ from __future__ import annotations
 
 from typing import Any
 
+from ohdsi_cohort_schemas import ConceptSetExpression
 from pydantic import BaseModel, Field
+
+# WebAPI-specific models that add metadata not in core schemas
 
 
 class ConceptSet(BaseModel):
+    """WebAPI concept set with optional expression (for CRUD operations)."""
+
     id: int | None = None
     name: str
     oid: int | None = None
     tags: list[Any] | None = None
-    expression: dict | None = None  # Raw expression
+    expression: ConceptSetExpression | dict | None = None  # Optional for WebAPI CRUD
 
 
-class ConceptSetExpression(BaseModel):
-    items: list[dict]
-
-
-class ConceptSetItem(BaseModel):
+class WebApiConceptSetItem(BaseModel):
     """A concept set item as returned by /conceptset/{id}/items endpoint."""
 
     id: int
