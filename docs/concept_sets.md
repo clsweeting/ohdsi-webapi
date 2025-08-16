@@ -54,30 +54,26 @@ Flags:
 
 ## Basic Operations
 
-This client uses **predictable REST-style methods** that mirror the WebAPI endpoints directly. See the [Supported Endpoints](supported_endpoints.md) page for the complete mapping.
+This client uses **predictable REST-style methods** that mirror the WebAPI endpoints directly. It also integrates with the `ohdsi-cohort-schemas` library for type-safe model handling.
 
 ```python
 from ohdsi_webapi import WebApiClient
 client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 # List concept sets (metadata only) - WARNING: can be 20,000+ items
-# GET /conceptset/ -> client.conceptset()
-concept_sets = client.conceptset()
+concept_sets = client.concept_sets.list()
 print(len(concept_sets))
 
 # Get a specific concept set by ID
-# GET /conceptset/{id} -> client.conceptset(id)
-cs = client.conceptset(concept_sets[0].id)
+cs = client.concept_sets.get(concept_sets[0].id)
 print(cs.name)
 
-# Fetch stored expression 
-# GET /conceptset/{id}/expression -> client.conceptset_expression(id)
-expr = client.conceptset_expression(cs.id)
-print(expr.get("items", []))
+# Fetch stored expression (returns structured model)
+expr = client.concept_sets.get_expression(cs.id)
+print(f"Expression has {len(expr.items)} items")
 
 # Resolve to concrete included concepts 
-# GET /conceptset/{id}/items -> client.conceptset_items(id)
-resolved = client.conceptset_items(cs.id)
+resolved = client.concept_sets.get_items(cs.id)
 print("Resolved count:", len(resolved))
 ```
 
@@ -87,7 +83,7 @@ The WebAPI `/conceptset/` endpoint returns ALL concept sets without pagination (
 
 ```python
 # Get all concept sets
-all_concept_sets = client.conceptset()
+all_concept_sets = client.concept_sets.list()
 
 # For basic name filtering, you can filter the list in Python
 covid_sets = [cs for cs in all_concept_sets if "covid" in cs.name.lower()][:10]
@@ -98,8 +94,8 @@ large_concept_sets = []
 for cs in all_concept_sets:
     # Get full details for interesting ones
     if "diabetes" in cs.name.lower():
-        expr = client.conceptset_expression(cs.id)
-        if len(expr.get('items', [])) > 10:
+        expr = client.concept_sets.get_expression(cs.id)
+        if len(expr.items) > 10:
             large_concept_sets.append(cs)
     
     # Break early if you find what you need
@@ -110,16 +106,40 @@ for cs in all_concept_sets:
 ## Creating a New Concept Set
 
 ```python
-# Build expression programmatically
-metformin = client.vocabulary.concept(201826)  # GET /vocabulary/concept/201826
-expr = {
+from ohdsi_cohort_schemas import ConceptSetExpression, ConceptSetItem, Concept
+
+# Build expression using structured models (recommended)
+metformin_concept = Concept(
+    concept_id=201826,
+    concept_name="Metformin",
+    standard_concept="S",
+    vocabulary_id="RxNorm",
+    domain_id="Drug"
+)
+
+metformin_item = ConceptSetItem(
+    concept=metformin_concept,
+    include_descendants=True,
+    include_mapped=True,
+    is_excluded=False
+)
+
+expr = ConceptSetExpression(items=[metformin_item])
+
+# Create the concept set
+cs_new = client.concept_sets.create("Metformin Only", expression=expr)
+print(cs_new.id)
+
+# Alternative: Build expression as dict (also supported)
+metformin_dict = client.vocabulary.get(201826)  # Get concept details
+expr_dict = {
     "items": [
         {
             "concept": {
-                "CONCEPT_ID": metformin.concept_id,
-                "CONCEPT_NAME": metformin.concept_name,
-                "STANDARD_CONCEPT": metformin.standardConcept,
-                "VOCABULARY_ID": metformin.vocabularyId,
+                "CONCEPT_ID": metformin_dict.concept_id,
+                "CONCEPT_NAME": metformin_dict.concept_name,
+                "STANDARD_CONCEPT": metformin_dict.standard_concept,
+                "VOCABULARY_ID": metformin_dict.vocabulary_id,
             },
             "includeDescendants": True,
             "includeMapped": True,
@@ -128,10 +148,7 @@ expr = {
     ]
 }
 
-# Create the concept set
-# POST /conceptset/ -> client.conceptset.create()
-cs_new = client.conceptset.create("Metformin Only", expression=expr)
-print(cs_new.id)
+cs_new = client.concept_sets.create("Metformin Only", expression=expr_dict)
 ```
 
 ## Updating Expression
@@ -139,10 +156,10 @@ print(cs_new.id)
 ```python
 # Update full ConceptSet object 
 cs_new.expression = expr
-cs_new = client.conceptset.update(cs_new)  # PUT /conceptset/{id}
+cs_new = client.concept_sets.update(cs_new.id, cs_new)
 
 # Or update just the expression 
-client.concept_sets.set_expression(cs_new.id, expr)  # POST /conceptset/{id}/expression
+client.concept_sets.set_expression(cs_new.id, expr)
 ```
 
 ## Other Operations
@@ -150,21 +167,21 @@ client.concept_sets.set_expression(cs_new.id, expr)  # POST /conceptset/{id}/exp
 ### Exporting a Concept Set  
 ```python
 # Export as CSV or JSON
-csv_text = client.conceptset_export(cs.id, format="csv")  # GET /conceptset/{id}/export
+csv_text = client.concept_sets.export(cs.id, format="csv")
 print(csv_text.splitlines()[:5])
 ```
 
 ### Comparing Two Concept Sets
 ```python
 # Compare overlap between concept sets
-overlap = client.concept_sets.compare(concept_sets[0].id, concept_sets[1].id)  # POST /conceptset/compare
+overlap = client.concept_sets.compare(concept_sets[0].id, concept_sets[1].id)
 print(len(overlap))  # structure depends on server version
 ```
 
 ### Generation Info
 ```python
 # Get metadata about where the concept set has been used
-gen_info = client.conceptset_generationinfo(cs.id)  # GET /conceptset/{id}/generationinfo
+gen_info = client.concept_sets.get_generation_info(cs.id)
 print(gen_info)  # May be empty or unsupported
 ```
 
@@ -181,7 +198,7 @@ Methods raise `WebApiError` subclasses on HTTP issues. Wrap calls if you need fa
 from ohdsi_webapi.exceptions import WebApiError
 
 try:
-    cs = client.conceptset(999999)  # GET /conceptset/999999
+    cs = client.concept_sets.get(999999)
 except WebApiError as e:
     print("Not found", e.status_code)
 ```

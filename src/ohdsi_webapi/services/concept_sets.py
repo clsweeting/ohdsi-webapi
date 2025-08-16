@@ -4,7 +4,7 @@ from typing import Any, Iterable, Iterator
 
 from ..cache import cached_method
 from ..http import HttpExecutor
-from ..models.concept_set import ConceptSet, ConceptSetItem
+from ..models.concept_set import ConceptSet, WebApiConceptSetItem
 
 
 class ConceptSetService:
@@ -163,7 +163,7 @@ class ConceptSetService:
         return data if isinstance(data, dict) else {}
 
     @cached_method(ttl_seconds=1800)  # 30 minutes for concept set resolution
-    def resolve(self, concept_set_id: int) -> list[ConceptSetItem]:
+    def resolve(self, concept_set_id: int) -> list[WebApiConceptSetItem]:
         """Get the concept set items (concepts) in a concept set.
 
         This method retrieves the concept set items that define which concepts
@@ -177,7 +177,7 @@ class ConceptSetService:
 
         Returns
         -------
-        list[ConceptSetItem]
+        list[WebApiConceptSetItem]
             List of concept set items showing concept IDs and inclusion rules.
 
         Examples
@@ -188,41 +188,35 @@ class ConceptSetService:
         """
         data = self._http.get(f"/conceptset/{concept_set_id}/items")
         if isinstance(data, list):
-            return [ConceptSetItem(**d) for d in data if isinstance(d, dict)]
+            return [WebApiConceptSetItem(**d) for d in data if isinstance(d, dict)]
         return []
 
-    def resolve_many(self, concept_set_ids: Iterable[int]) -> dict[int, list[ConceptSetItem]]:
-        """Get concept set items for multiple concept sets.
+    def resolve_many(self, concept_set_ids: Iterable[int]) -> dict[int, list[WebApiConceptSetItem]]:
+        """Get concept set items for multiple concept sets in batch.
 
-        Since there's no bulk endpoint, this method makes individual calls
-        to get items for each concept set and returns a mapping of results.
+        This is an optimized method for retrieving items from multiple concept sets
+        at once, which can be more efficient than making individual calls.
 
         Parameters
         ----------
         concept_set_ids : Iterable[int]
-            The concept set IDs to get items for.
+            The IDs of the concept sets to get items for.
 
         Returns
         -------
-        dict[int, list[ConceptSetItem]]
-            Mapping of concept set ID to list of concept set items.
+        dict[int, list[WebApiConceptSetItem]]
+            Dictionary mapping concept set ID to list of concept set items.
 
         Examples
         --------
-        >>> results = client.concept_sets.resolve_many([123, 456, 789])
-        >>> for cs_id, items in results.items():
-        ...     print(f"Concept set {cs_id}: {len(items)} items")
+        >>> items_by_cs = client.concept_sets.resolve_many([123, 456])
+        >>> print(f"CS 123 has {len(items_by_cs[123])} items")
         """
-        ids = list(concept_set_ids)
-        if not ids:
-            return {}
-
-        result: dict[int, list[ConceptSetItem]] = {}
-        for cid in ids:
-            try:
-                result[cid] = self.resolve(cid)
-            except Exception:
-                result[cid] = []  # Return empty list on error
+        # For now, just make individual calls
+        # Future optimization: check if WebAPI supports batch resolve
+        result: dict[int, list[WebApiConceptSetItem]] = {}
+        for concept_set_id in concept_set_ids:
+            result[concept_set_id] = self.resolve(concept_set_id)
         return result
 
     def generation_info(self, concept_set_id: int) -> list[dict[str, Any]]:

@@ -33,17 +33,35 @@ client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 ## Fetch Existing Cohort Definition
 ```python
-cohort = client.cohortdefinition(5)
+cohort = client.cohorts.get(5)
 print(cohort.name, cohort.expression_type)
 ```
-The `expression` is a nested structure; this client stores it as a raw `dict`.
+The `expression` is a nested structure; this client stores it as a raw `dict` but can work with structured models from `ohdsi-cohort-schemas`.
 
 ## Creating a Cohort Definition
-Minimal example (placeholder expression):
+Using the unified models from `ohdsi-cohort-schemas`:
 ```python
 from ohdsi_webapi.models.cohort import CohortDefinition
+from ohdsi_cohort_schemas import CohortExpression, PrimaryCriteria
 
-expression = {
+# Using structured models (recommended)
+primary_criteria = PrimaryCriteria(
+    criteria_list=[],
+    observation_window={"prior_days": 0, "post_days": 0},
+    primary_criteria_limit={"type": "All"}
+)
+
+expression = CohortExpression(
+    primary_criteria=primary_criteria,
+    concept_sets=[]
+)
+
+cohort_def = CohortDefinition(name="Sample Cohort", expression=expression)
+created = client.cohorts.create(cohort_def)
+print(created.id)
+
+# Or using dict format (also supported)
+expression_dict = {
   "PrimaryCriteria": {
     "CriteriaList": [],
     "ObservationWindow": {"PriorDays": 0, "PostDays": 0},
@@ -51,38 +69,37 @@ expression = {
   },
   "ConceptSets": []
 }
-cohort_def = CohortDefinition(name="Sample Cohort", expression=expression)
-created = client.cohortdefinition.create(cohort_def)
-print(created.id)
+cohort_def = CohortDefinition(name="Sample Cohort", expression=expression_dict)
+created = client.cohorts.create(cohort_def)
 ```
-(Real expressions are typically composed using Atlas or a builder tool; future helpers may be added.)
+The model validator gracefully handles both structured models and raw dicts.
 
 ## Updating a Cohort
 ```python
 created.name = "Sample Cohort v2"
-updated = client.cohortdefinition.update(created.id, created)
+updated = client.cohorts.update(created.id, created)
 ```
 
 ## Deleting a Cohort
 ```python
-client.cohortdefinition.delete(updated.id)
+client.cohorts.delete(updated.id)
 ```
 Use with caution—irreversible.
 
 ## Generating a Cohort
-You need a source key (from `client.sources()`) for a CDM with a results schema configured.
+You need a source key (from `client.sources.list()`) for a CDM with a results schema configured.
 ```python
-sources = client.sources()
+sources = client.sources.list()
 source_key = sources[0].source_key
-status = client.cohortdefinition_generate(cohort.id, source_key)
+status = client.cohorts.generate(cohort.id, source_key)
 print(status.status)
 ```
 This returns an initial status—often a background job.
 
 ## Polling for Completion
 ```python
-final_# Poll for completion
-status = client.cohorts.poll_generation(cohort_id=cohort_id, source_key="EUNOMIA")
+# Poll for completion
+final_status = client.cohorts.poll_generation(cohort_id=cohort.id, source_key=source_key)
 print(final_status.status)
 ```
 Terminal statuses: COMPLETED, FAILED, STOPPED.
