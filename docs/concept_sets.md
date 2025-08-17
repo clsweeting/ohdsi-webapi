@@ -29,7 +29,66 @@ They’re essentially lists of standard concepts that you can later reference in
 - Resolving a concept set expands the expression into concrete included concepts (applying descendants/mapped logic).
 - You can fetch, update, and reuse concept sets across analyses.
 
-## Structure of an Expression (Simplified)
+
+## Concept Sets vs. Concept Set Items vs. Expressions 
+
+Understanding the distinction between these three concepts is crucial for working with OHDSI concept sets:
+
+### ConceptSet
+- **Purpose**: a complete, reusable group of medical concepts with metadata
+- **Structure**: contains an ID, name, and expression
+- **Usage**: This is what gets stored and managed in the OHDSI WebAPI
+- **Components**:
+  - `id`: Unique identifier within the cohort definition
+  - `name`: Human-readable name (e.g., "Type 2 Diabetes Mellitus")
+  - `expression`: The logic defining which concepts are included
+
+### ConceptSetExpression
+- **Purpose**: Defines the logical rules for which concepts should be included in the set
+- **Structure**: Contains a list of ConceptSetItems
+- **Usage**: This is the "recipe" or "formula" that defines the concept set
+- **Components**:
+  - `items`: A list of ConceptSetItem objects that define the inclusion/exclusion rules
+
+### ConceptSetItem
+- **Purpose**: Represents a single concept and its inclusion/exclusion rules within a concept set
+- **Structure**: Contains one OMOP concept plus behavioral flags
+- **Usage**: This is a single "ingredient" in the concept set recipe
+- **Components**:
+  - `concept`: An OMOP Concept (with ID, name, vocabulary, etc.)
+  - `include_descendants`: Whether to include child concepts in the hierarchy
+  - `include_mapped`: Whether to include concepts mapped from source vocabularies
+  - `is_excluded`: Whether this concept should be subtracted from the set
+
+### Hierarchy and Relationship
+
+```
+ConceptSet
+├── id: 0
+├── name: "Type 2 Diabetes Mellitus"
+└── expression: ConceptSetExpression
+    └── items: [ConceptSetItem, ConceptSetItem, ...]
+        ├── ConceptSetItem
+        │   ├── concept: Concept (ID: 201826, "Type 2 diabetes mellitus")
+        │   ├── include_descendants: true
+        │   ├── include_mapped: false
+        │   └── is_excluded: false
+        └── ConceptSetItem
+            ├── concept: Concept (ID: 201254, "Type 1 diabetes mellitus") 
+            ├── include_descendants: true
+            ├── include_mapped: false
+            └── is_excluded: true  # Exclude Type 1 from Type 2 set
+```
+
+### Key Distinction
+
+- **ConceptSet** = The complete package (metadata + logic)
+- **ConceptSetExpression** = The logic/rules only
+- **ConceptSetItem** = Individual concept + its inclusion/exclusion behavior
+
+The Expression is the "brain" of the ConceptSet - it defines which concepts get included or excluded and how hierarchical relationships are handled. When the WebAPI "resolves" a concept set, it takes the Expression and expands it into a concrete list of concept IDs based on the vocabulary hierarchy and mapping rules.
+
+### Structure of an Expression (Simplified)
 ```json
 {
   "items": [
@@ -61,19 +120,19 @@ from ohdsi_webapi import WebApiClient
 client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 # List concept sets (metadata only) - WARNING: can be 20,000+ items
-concept_sets = client.concept_sets.list()
+concept_sets = client.conceptset()    # Since the WebAPI method is GET /conceptset 
 print(len(concept_sets))
 
 # Get a specific concept set by ID
-cs = client.concept_sets.get(concept_sets[0].id)
+cs = client.conceptset(concept_sets[0].id)
 print(cs.name)
 
 # Fetch stored expression (returns structured model)
-expr = client.concept_sets.get_expression(cs.id)
-print(f"Expression has {len(expr.items)} items")
+expr = client.conceptset_expression(cs.id)
+print(expr)
 
 # Resolve to concrete included concepts 
-resolved = client.concept_sets.get_items(cs.id)
+resolved = client.conceptset_items(cs.id)
 print("Resolved count:", len(resolved))
 ```
 
@@ -83,24 +142,12 @@ The WebAPI `/conceptset/` endpoint returns ALL concept sets without pagination (
 
 ```python
 # Get all concept sets
-all_concept_sets = client.concept_sets.list()
+all_concept_sets = client.conceptset()
 
 # For basic name filtering, you can filter the list in Python
 covid_sets = [cs for cs in all_concept_sets if "covid" in cs.name.lower()][:10]
 diabetes_sets = [cs for cs in all_concept_sets if "diabetes" in cs.name.lower()][:5]
 
-# Process concept sets one at a time to avoid memory issues
-large_concept_sets = []
-for cs in all_concept_sets:
-    # Get full details for interesting ones
-    if "diabetes" in cs.name.lower():
-        expr = client.concept_sets.get_expression(cs.id)
-        if len(expr.items) > 10:
-            large_concept_sets.append(cs)
-    
-    # Break early if you find what you need
-    if len(large_concept_sets) >= 10:
-        break
 ```
 
 ## Creating a New Concept Set
@@ -110,8 +157,9 @@ from ohdsi_cohort_schemas import ConceptSetExpression, ConceptSetItem, Concept
 
 # Build expression using structured models (recommended)
 metformin_concept = Concept(
-    concept_id=201826,
+    concept_id=98061,
     concept_name="Metformin",
+    concept_code="98061",  
     standard_concept="S",
     vocabulary_id="RxNorm",
     domain_id="Drug"
@@ -181,7 +229,7 @@ print(len(overlap))  # structure depends on server version
 ### Generation Info
 ```python
 # Get metadata about where the concept set has been used
-gen_info = client.concept_sets.get_generation_info(cs.id)
+gen_info = client.conceptset_generationinfo(cs.id)
 print(gen_info)  # May be empty or unsupported
 ```
 
@@ -198,7 +246,7 @@ Methods raise `WebApiError` subclasses on HTTP issues. Wrap calls if you need fa
 from ohdsi_webapi.exceptions import WebApiError
 
 try:
-    cs = client.concept_sets.get(999999)
+    cs = client.conceptset(999999)
 except WebApiError as e:
     print("Not found", e.status_code)
 ```

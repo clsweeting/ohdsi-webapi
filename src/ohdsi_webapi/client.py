@@ -18,7 +18,7 @@ class WebApiClient:
         )
 
         # Core service objects (primary interface)
-        self.info = InfoService(self._http)
+        self.info_service = InfoService(self._http)
         self.source = SourceService(self._http)
         self.vocabulary = VocabularyService(self._http)
         self.vocab = self.vocabulary  # Alias for convenience
@@ -28,10 +28,12 @@ class WebApiClient:
 
         # Explicit REST-style convenience methods
         # Concept set methods
+        
         self.conceptset_expression = self.concept_sets.expression
         self.conceptset_items = self.concept_sets.resolve
         self.conceptset_export = self.concept_sets.export
         self.conceptset_generationinfo = self.concept_sets.generation_info
+        self.info = self.info_service.get
 
         # Cohort definition methods
         self.cohortdefinition_generate = self.cohorts.generate
@@ -40,6 +42,29 @@ class WebApiClient:
 
         # Job methods
         self.job_status = self.jobs.status
+
+    def conceptset(self, id:int = None): 
+        """Get all concept sets or a specific one by ID.
+
+        Equates to the WebAPI endpoints: 
+
+        GET /conceptset 
+        GET /conceptset/{id}
+        """
+        if id: 
+            return self.concept_sets.get(id)
+        else:
+            return self.concept_sets.list()
+
+
+    def cohort(self, id:int): 
+        """Get a specific cohort by ID. 
+
+        Equates to the WebAPI endpoint: 
+
+        GET /cohort/{id}
+        """
+        return self.cohorts.get(id)
 
     def sources(self):
         """Get all available data sources.

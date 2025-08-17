@@ -33,16 +33,27 @@ client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 ## Fetch Existing Cohort Definition
 ```python
-cohort = client.cohorts.get(5)
+cohort = client.cohort(5)     # Equivalent to GET /cohort/{id}
 print(cohort.name, cohort.expression_type)
 ```
 The `expression` is a nested structure; this client stores it as a raw `dict` but can work with structured models from `ohdsi-cohort-schemas`.
 
-## Creating a Cohort Definition
-Using the unified models from `ohdsi-cohort-schemas`:
 ```python
-from ohdsi_webapi.models.cohort import CohortDefinition
-from ohdsi_cohort_schemas import CohortExpression, PrimaryCriteria
+print(cohort) 
+
+print(cohort.expression)
+```
+
+
+
+
+## Creating a Cohort Definition
+
+Using the models from `ohdsi-cohort-schemas`:
+
+```python
+from ohdsi_webapi.models.cohort import CohortDefinition, PrimaryCriteria
+from ohdsi_cohort_schemas import CohortExpression
 
 # Using structured models (recommended)
 primary_criteria = PrimaryCriteria(
@@ -73,6 +84,11 @@ cohort_def = CohortDefinition(name="Sample Cohort", expression=expression_dict)
 created = client.cohorts.create(cohort_def)
 ```
 The model validator gracefully handles both structured models and raw dicts.
+
+
+> [!WARNING]
+> If you get a HTTP 409 error when trying to create a CohortDefinition, it indicates a conflict - usually
+> as a result of using a name which has already been taken.  
 
 ## Updating a Cohort
 ```python
