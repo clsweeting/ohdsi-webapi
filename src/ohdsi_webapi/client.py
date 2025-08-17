@@ -7,7 +7,7 @@ from .services.cohorts import CohortService
 from .services.concept_sets import ConceptSetService
 from .services.info import InfoService
 from .services.jobs import JobsService
-from .services.sources import SourcesService
+from .services.source import SourceService
 from .services.vocabulary import VocabularyService
 
 
@@ -19,7 +19,7 @@ class WebApiClient:
 
         # Core service objects (primary interface)
         self.info = InfoService(self._http)
-        self.sources = SourcesService(self._http)
+        self.source = SourceService(self._http)
         self.vocabulary = VocabularyService(self._http)
         self.vocab = self.vocabulary  # Alias for convenience
         self.concept_sets = ConceptSetService(self._http)
@@ -40,6 +40,27 @@ class WebApiClient:
 
         # Job methods
         self.job_status = self.jobs.status
+
+    def sources(self):
+        """Get all available data sources.
+        
+        .. deprecated:: 
+            Use :attr:`source.sources()` instead. This method is kept for backward compatibility.
+            
+        Returns
+        -------
+        list of Source
+            List of available data source configurations.
+            
+        Examples
+        --------
+        >>> # Old way (deprecated but still works)
+        >>> sources = client.sources()
+        >>> 
+        >>> # New preferred way
+        >>> sources = client.source.sources()
+        """
+        return self.source.sources()
 
     def close(self):
         self._http.close()

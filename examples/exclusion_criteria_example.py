@@ -28,7 +28,7 @@ async def exclusion_criteria_example():
 
     try:
         # Get data source
-        sources = client.sources.list()
+        sources = client.source.sources()
         if not sources:
             print("No data sources available")
             return

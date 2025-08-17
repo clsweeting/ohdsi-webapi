@@ -141,7 +141,7 @@ async def demo_cohort_creation():
 
     try:
         # Check if we have data sources
-        sources = client.sources.list()
+        sources = client.source.sources()
         if not sources:
             print("ℹ️  No data sources available - showing concept creation only")
 

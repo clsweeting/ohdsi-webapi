@@ -144,7 +144,7 @@ def check_concept_size(concept_id: int, source_key: str):
     return "See cohorts documentation for complete workflow"
 
 # Example of concept validation approach
-sources = client.sources.list()
+sources = client.source.sources()
 source_key = sources[0].source_key if sources else "EUNOMIA"
 
 for concept in conditions[:3]:

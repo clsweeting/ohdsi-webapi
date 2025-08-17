@@ -87,9 +87,9 @@ client.cohorts.delete(updated.id)
 Use with caution—irreversible.
 
 ## Generating a Cohort
-You need a source key (from `client.sources.list()`) for a CDM with a results schema configured.
+You need a source key (from `client.source.sources()`) for a CDM with a results schema configured.
 ```python
-sources = client.sources.list()
+sources = client.source.sources()
 source_key = sources[0].source_key
 status = client.cohorts.generate(cohort.id, source_key)
 print(status.status)

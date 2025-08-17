@@ -8,7 +8,7 @@ A **data source** in OHDSI represents a specific database containing data that h
 
 ```python
 # Get source details to understand what you're working with
-sources = client.sources.list()
+sources = client.source.sources()
 
 for source in sources:
     print(f"""
@@ -63,7 +63,7 @@ from ohdsi_webapi import WebApiClient
 client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 # Get list of all configured sources
-sources = client.sources.list()
+sources = client.source.sources()
 
 for source in sources:
     print(f"Key: {source.source_key}, Name: {source.source_name}")
@@ -138,7 +138,7 @@ By running the same cohort definition against multiple sources, researchers can:
 
 ```python
 # Get source details to understand what you're working with
-sources = client.sources.list()
+sources = client.source.sources()
 
 for source in sources:
     print(f"""
@@ -168,7 +168,7 @@ except WebApiError as e:
 
 ```python
 # Verify a source exists before using it
-available_keys = [s.source_key for s in client.sources.list()]
+available_keys = [s.source_key for s in client.source.sources()]
 
 if "SYNPUF" in available_keys:
     # Safe to use this source
@@ -180,7 +180,7 @@ else:
 ## Common Questions
 
 **Q: How do I know which source to use for my research?**  
-A: It depends on your research question. Use `client.sources.list()` to see available sources and their basic metadata.
+A: It depends on your research question. Use `client.source.sources()` to see available sources and their basic metadata.
 
 **Q: Can I run the same cohort on multiple sources?**  
 A: Yes! This is common for validation studies. Just call `client.cohortdefinition_generate()` with different `source_key` values.

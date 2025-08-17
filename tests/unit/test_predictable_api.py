@@ -91,7 +91,7 @@ class TestExplicitAPI:
         assert callable(client.cohorts.get)
         assert callable(client.vocabulary.search)
         assert callable(client.info.get)
-        assert callable(client.sources.list)
+        assert callable(client.source.sources)
 
     def test_vocabulary_methods(self, client):
         """Test that vocabulary service has expected methods."""
