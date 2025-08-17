@@ -188,7 +188,7 @@ async def test_cardiovascular_cohort():
 
     try:
         # Get available data sources
-        sources = client.sources.list()
+        sources = client.source.sources()
         if not sources:
             print("❌ No data sources available for testing")
             return

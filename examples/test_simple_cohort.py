@@ -30,7 +30,7 @@ def test_simple_cohort():
         client = WebApiClient(base_url=base_url)
 
         # Get available sources
-        sources = client.sources.list()
+        sources = client.source.sources()
         if not sources:
             print("❌ No data sources available")
             return

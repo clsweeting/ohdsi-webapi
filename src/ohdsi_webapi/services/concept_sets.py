@@ -236,12 +236,6 @@ class ConceptSetService:
             return json.dumps(data)
         return str(data)
 
-    def compare(self, concept_set_id_1: int, concept_set_id_2: int) -> list[dict[str, Any]]:
-        """Compare two concept sets; returns overlap/differences list."""
-        payload = {"conceptSetId1": concept_set_id_1, "conceptSetId2": concept_set_id_2}
-        data = self._http.post("/conceptset/compare", json_body=payload)
-        return data if isinstance(data, list) else []
-
     def included_concepts(self, concept_set_id: int) -> list[dict[str, Any]]:
         """Fetch included concepts (if endpoint available). Tries several variants; returns empty list if unsupported."""
         candidates = [

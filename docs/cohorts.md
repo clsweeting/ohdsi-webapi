@@ -33,22 +33,40 @@ client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 ## Fetch Existing Cohort Definition
 ```python
-cohort = client.cohorts.get(5)
+cohort = client.cohort(5)     # Equivalent to GET /cohort/{id}
 print(cohort.name, cohort.expression_type)
 ```
 The `expression` is a nested structure; this client stores it as a raw `dict` but can work with structured models from `ohdsi-cohort-schemas`.
 
+```python
+print(cohort) 
+
+print(cohort.expression)
+```
+
+
+
+
 ## Creating a Cohort Definition
-Using the unified models from `ohdsi-cohort-schemas`:
+
+Using the models from `ohdsi-cohort-schemas`:
+
 ```python
 from ohdsi_webapi.models.cohort import CohortDefinition
-from ohdsi_cohort_schemas import CohortExpression, PrimaryCriteria
+from datetime import datetime
+
+from ohdsi_cohort_schemas import CohortExpression
+from ohdsi_cohort_schemas.models.cohort import PrimaryCriteria
+from ohdsi_cohort_schemas.models.common import ObservationWindow, Limit
 
 # Using structured models (recommended)
+observation_window = ObservationWindow(prior_days=0, post_days=0)
+primary_criteria_limit = Limit(type="All")
+
 primary_criteria = PrimaryCriteria(
     criteria_list=[],
-    observation_window={"prior_days": 0, "post_days": 0},
-    primary_criteria_limit={"type": "All"}
+    observation_window=observation_window,
+    primary_criteria_limit=primary_criteria_limit
 )
 
 expression = CohortExpression(
@@ -56,8 +74,9 @@ expression = CohortExpression(
     concept_sets=[]
 )
 
-cohort_def = CohortDefinition(name="Sample Cohort", expression=expression)
-created = client.cohorts.create(cohort_def)
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+cohort_def = CohortDefinition(name=f"Sample Cohort {timestamp}", expression=expression)
+created = client.cohort_create(cohort_def)
 print(created.id)
 
 # Or using dict format (also supported)
@@ -69,27 +88,32 @@ expression_dict = {
   },
   "ConceptSets": []
 }
-cohort_def = CohortDefinition(name="Sample Cohort", expression=expression_dict)
-created = client.cohorts.create(cohort_def)
+cohort_def = CohortDefinition(name=f"Sample Cohort Dict {timestamp}", expression=expression_dict)
+created = client.cohort_create(cohort_def)
 ```
 The model validator gracefully handles both structured models and raw dicts.
 
+
+> [!WARNING]
+> If you get a HTTP 409 error when trying to create a CohortDefinition, it indicates a conflict - usually
+> as a result of using a name which has already been taken.  
+
 ## Updating a Cohort
 ```python
-created.name = "Sample Cohort v2"
-updated = client.cohorts.update(created.id, created)
+created.name = f"Sample Cohort v2 {timestamp}"
+updated = client.cohort_update(created)
 ```
 
 ## Deleting a Cohort
 ```python
-client.cohorts.delete(updated.id)
+client.cohort_delete(updated.id)
 ```
 Use with caution—irreversible.
 
 ## Generating a Cohort
-You need a source key (from `client.sources.list()`) for a CDM with a results schema configured.
+You need a source key (from `client.source.sources()`) for a CDM with a results schema configured.
 ```python
-sources = client.sources.list()
+sources = client.source.sources()
 source_key = sources[0].source_key
 status = client.cohorts.generate(cohort.id, source_key)
 print(status.status)

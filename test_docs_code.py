@@ -22,11 +22,12 @@ def test_basic_connection():
         return None
 
 
-def test_sources(client):
+def test_sources():
     """Test sources functionality."""
     print("\n=== Testing Sources ===")
     try:
-        sources = client.sources()
+        client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
+        sources = client.source.sources()  # Updated to use new API
         print(f"✓ Retrieved {len(sources)} sources")
         if sources:
             src = sources[0]

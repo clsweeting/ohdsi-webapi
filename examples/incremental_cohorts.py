@@ -46,7 +46,7 @@ async def build_diabetes_cohort_example():
         client = WebApiClient(base_url=base_url)
 
     # Choose your data source
-    sources = client.sources.list()
+    sources = client.source.sources()
     if not sources:
         print("No data sources available")
         return
@@ -132,7 +132,7 @@ async def quick_diabetes_demo():
         client = WebApiClient(base_url=base_url)
 
     # Get available sources
-    sources = client.sources.list()
+    sources = client.source.sources()
     if not sources:
         print("No data sources available")
         return

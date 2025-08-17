@@ -50,7 +50,7 @@ async def example_incremental_cohort():
         client = WebApiClient(base_url=base_url)
 
     # Get data source
-    sources = client.sources.list()
+    sources = client.source.sources()
     source_key = sources[0].source_key  # Use first available
 
     print("Building cohort: Males over 40 with diabetes in last 2 years")
@@ -139,7 +139,7 @@ async def example_automated():
         client = WebApiClient(base_url=base_url, auth=auth)
     else:
         client = WebApiClient(base_url=base_url)
-    sources = client.sources.list()
+    sources = client.source.sources()
     source_key = sources[0].source_key
 
     # Define what we want

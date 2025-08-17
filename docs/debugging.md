@@ -1,4 +1,11 @@
-# Curl request to create a cohort 
+# Debugging 
+
+## HTTP 409 errors when creating a CohortDefinition 
+
+This indicates a conflict, which usually is the result of trying to create a CohortDefinition with a namne which has already been used before.  
+
+
+## Curl request to create a cohort 
 
 ```
 curl -X POST "https://atlas-demo.ohdsi.org/WebAPI/cohortdefinition" \

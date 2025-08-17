@@ -58,7 +58,7 @@ async def advanced_filters_demo():
 
     try:
         # Get data source
-        sources = client.sources.list()
+        sources = client.source.sources()
         if not sources:
             print("No data sources available - showing filter creation only")
             show_filter_examples(client)

@@ -31,7 +31,7 @@ def test_connection():
 
         # Test sources
         print("\n📊 Available Sources:")
-        sources = client.sources.list()
+        sources = client.source.sources()
         for source in sources:
             print(f"- {source.source_name} (key: {source.source_key})")
 
