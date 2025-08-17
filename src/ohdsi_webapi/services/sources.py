@@ -40,10 +40,10 @@ class SourceService:
 
     def list(self) -> list[Source]:
         """List all available data sources.
-        
-        .. deprecated:: 
+
+        .. deprecated::
             Use :meth:`sources` instead. This method is kept for backward compatibility.
-        
+
         Returns
         -------
         list of Source

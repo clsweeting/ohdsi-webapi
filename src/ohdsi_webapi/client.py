@@ -28,7 +28,7 @@ class WebApiClient:
 
         # Explicit REST-style convenience methods
         # Concept set methods
-        
+
         self.conceptset_expression = self.concept_sets.expression
         self.conceptset_items = self.concept_sets.resolve
         self.conceptset_export = self.concept_sets.export
@@ -43,24 +43,23 @@ class WebApiClient:
         # Job methods
         self.job_status = self.jobs.status
 
-    def conceptset(self, id:int = None): 
+    def conceptset(self, id: int | None = None):
         """Get all concept sets or a specific one by ID.
 
-        Equates to the WebAPI endpoints: 
+        Equates to the WebAPI endpoints:
 
-        GET /conceptset 
+        GET /conceptset
         GET /conceptset/{id}
         """
-        if id: 
+        if id:
             return self.concept_sets.get(id)
         else:
             return self.concept_sets.list()
 
+    def cohort(self, id: int):
+        """Get a specific cohort by ID.
 
-    def cohort(self, id:int): 
-        """Get a specific cohort by ID. 
-
-        Equates to the WebAPI endpoint: 
+        Equates to the WebAPI endpoint:
 
         GET /cohort/{id}
         """
@@ -68,20 +67,20 @@ class WebApiClient:
 
     def sources(self):
         """Get all available data sources.
-        
-        .. deprecated:: 
+
+        .. deprecated::
             Use :attr:`source.sources()` instead. This method is kept for backward compatibility.
-            
+
         Returns
         -------
         list of Source
             List of available data source configurations.
-            
+
         Examples
         --------
         >>> # Old way (deprecated but still works)
         >>> sources = client.sources()
-        >>> 
+        >>>
         >>> # New preferred way
         >>> sources = client.source.sources()
         """

@@ -38,7 +38,7 @@ def test_list_sources_backward_compatibility():
         client.close()
 
 
-@respx.mock 
+@respx.mock
 def test_client_sources_shortcut():
     """Test the client.sources() shortcut method."""
     respx.get("http://test/WebAPI/source/sources").mock(

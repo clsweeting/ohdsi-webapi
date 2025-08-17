@@ -28,7 +28,7 @@ def test_info_service_get():
         client.close()
 
 
-@respx.mock 
+@respx.mock
 def test_info_shortcut():
     """Test the new client.info() shortcut method."""
     route = respx.get("http://test/WebAPI/info").mock(return_value=httpx.Response(200, json={"version": "2.13.0", "buildNumber": "123"}))
@@ -44,11 +44,11 @@ def test_info_shortcut():
 @respx.mock
 def test_info_methods_equivalent():
     """Test that both info methods return equivalent data."""
-    route = respx.get("http://test/WebAPI/info").mock(return_value=httpx.Response(200, json={"version": "2.13.0", "buildNumber": "123"}))
+    respx.get("http://test/WebAPI/info").mock(return_value=httpx.Response(200, json={"version": "2.13.0", "buildNumber": "123"}))
     client = WebApiClient("http://test/WebAPI")
     try:
         info1 = client.info_service.get()
-        info2 = client.info() 
+        info2 = client.info()
         assert info1.version == info2.version
         assert type(info1) == type(info2)
     finally:

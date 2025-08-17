@@ -151,7 +151,13 @@ from ohdsi_cohort_schemas import (
     ConceptSetExpression
 )
 
-# Create the Type 2 diabetes concept using the schema model
+
+# Either retrieve the Concept from the vocabulary, based on its ID: 
+diabetes_concept = client.vocabulary.concept(201826)
+print(concept)
+
+
+# OR create the Type 2 diabetes concept using the schema model
 diabetes_concept = Concept(
     concept_id=201826,
     concept_name="Type 2 diabetes mellitus",

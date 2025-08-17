@@ -174,12 +174,12 @@ metformin_item = ConceptSetItem(
 
 expr = ConceptSetExpression(items=[metformin_item])
 
-# Create the concept set
-cs_new = client.concept_sets.create("Metformin Only", expression=expr)
+# Create the concept set - convert model to dict
+cs_new = client.concept_sets.create("Metformin Only", expression=expr.model_dump(by_alias=True))
 print(cs_new.id)
 
 # Alternative: Build expression as dict (also supported)
-metformin_dict = client.vocabulary.get(201826)  # Get concept details
+metformin_dict = client.vocabulary.concept(201826)  # Get concept details
 expr_dict = {
     "items": [
         {
@@ -198,6 +198,19 @@ expr_dict = {
 
 cs_new = client.concept_sets.create("Metformin Only", expression=expr_dict)
 ```
+
+> [!CAUTION]
+> **JSON Serialization Error Fix:** If you get `TypeError: Object of type ConceptSetExpression is not JSON serializable`, you need to convert Pydantic models to dictionaries before sending to the API:
+> 
+> ```python
+> # ❌ Wrong - passing Pydantic model directly
+> cs_new = client.concept_sets.create("Name", expression=expr)
+> 
+> # ✅ Correct - convert to dict with proper aliases
+> cs_new = client.concept_sets.create("Name", expression=expr.model_dump(by_alias=True))
+> ```
+> 
+> The `by_alias=True` parameter ensures field names match the WebAPI format (e.g., `includeDescendants` instead of `include_descendants`).
 
 ## Updating Expression
 

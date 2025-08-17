@@ -90,7 +90,7 @@ class TestExplicitAPI:
         assert callable(client.cohorts.list)
         assert callable(client.cohorts.get)
         assert callable(client.vocabulary.search)
-        assert callable(client.info.get)
+        assert callable(client.info)  # info is now a shortcut method, not a service
         assert callable(client.source.sources)
 
     def test_vocabulary_methods(self, client):
@@ -120,9 +120,9 @@ class TestExplicitAPI:
         assert not hasattr(client, "conceptset_unknown_method")
         assert not hasattr(client, "cohortdefinition_unknown_method")
 
-        # No callable wrappers anymore
-        assert not callable(getattr(client, "conceptset", None))
-        assert not callable(getattr(client, "cohortdefinition", None))
+        # Some specific convenience methods are still intentionally available
+        assert callable(getattr(client, "conceptset", None))  # Explicit convenience method
+        assert not callable(getattr(client, "cohortdefinition", None))  # No base method, only cohortdefinition_*
 
     def test_cache_management_methods(self, client):
         """Test that cache management methods are available."""

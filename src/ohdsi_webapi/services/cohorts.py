@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any
 
 from ..http import HttpExecutor
 from ..models.cohort import CohortCount, CohortDefinition, InclusionRuleStats, JobStatus
 
 # Import unified models for type hints and conversion
 try:
-    from ohdsi_cohort_schemas import Concept, ConceptSetItem, ConceptSetExpression
+    # Note: These imports may be used in future unified model support
     UNIFIED_MODELS_AVAILABLE = True
 except ImportError:
     UNIFIED_MODELS_AVAILABLE = False
@@ -17,9 +17,9 @@ _TERMINAL_STATUSES = {"COMPLETED", "FAILED", "STOPPED"}
 
 def _to_dict(obj: Any) -> dict[str, Any]:
     """Convert unified model to dict if needed, otherwise return as-is."""
-    if hasattr(obj, 'model_dump'):  # It's a Pydantic model
+    if hasattr(obj, "model_dump"):  # It's a Pydantic model
         return obj.model_dump(by_alias=True)
-    elif hasattr(obj, 'dict'):  # Older Pydantic version
+    elif hasattr(obj, "dict"):  # Older Pydantic version
         return obj.dict(by_alias=True)
     else:
         return obj  # Already a dict
@@ -27,7 +27,7 @@ def _to_dict(obj: Any) -> dict[str, Any]:
 
 def _is_unified_model(obj: Any) -> bool:
     """Check if object is a unified model (has Pydantic methods)."""
-    return hasattr(obj, 'model_dump') or hasattr(obj, 'dict')
+    return hasattr(obj, "model_dump") or hasattr(obj, "dict")
 
 
 class CohortService:
@@ -310,7 +310,7 @@ class CohortService:
 
     # Cohort Building Helpers
 
-    def create_concept_set(self, concept_id: Union[int, Any], name: str, include_descendants: bool = True) -> dict[str, Any]:
+    def create_concept_set(self, concept_id: int | Any, name: str, include_descendants: bool = True) -> dict[str, Any]:
         """Create a concept set for use in cohort definitions.
 
         A concept set defines a collection of OMOP concepts that represent a clinical
@@ -366,7 +366,7 @@ class CohortService:
         The include_descendants parameter is important for clinical concepts:
         - True: Includes all child concepts (e.g., "Type 2 diabetes with complications")
         - False: Exact concept match only (more restrictive)
-        
+
         When passing a Concept object, the name parameter is ignored and the
         concept_name from the Concept object is used instead.
         """
@@ -374,8 +374,8 @@ class CohortService:
         if _is_unified_model(concept_id):
             # It's a unified Concept model
             concept_dict = _to_dict(concept_id)
-            actual_concept_id = concept_dict.get('concept_id') or concept_dict.get('CONCEPT_ID')
-            actual_name = concept_dict.get('concept_name') or concept_dict.get('CONCEPT_NAME') or name
+            actual_concept_id = concept_dict.get("concept_id") or concept_dict.get("CONCEPT_ID")
+            actual_name = concept_dict.get("concept_name") or concept_dict.get("CONCEPT_NAME") or name
         else:
             # It's a traditional int concept_id
             actual_concept_id = concept_id
@@ -398,7 +398,7 @@ class CohortService:
             },
         }
 
-    def create_base_cohort_expression(self, concept_sets: list[Union[dict[str, Any], Any]], primary_concept_set_id: int = 0) -> dict[str, Any]:
+    def create_base_cohort_expression(self, concept_sets: list[dict[str, Any] | Any], primary_concept_set_id: int = 0) -> dict[str, Any]:
         """Create a basic cohort expression with just primary criteria.
 
         This creates the foundation for a cohort definition by establishing the
@@ -451,12 +451,12 @@ class CohortService:
                 # It's a ConceptSetExpression or similar unified model
                 cs_dict = _to_dict(cs)
                 # Ensure it has the expected structure for legacy methods
-                if 'items' in cs_dict and 'id' not in cs_dict:
+                if "items" in cs_dict and "id" not in cs_dict:
                     # Convert ConceptSetExpression to legacy format
                     cs_dict = {
                         "id": 0,  # Will be reassigned below
-                        "name": cs_dict.get('name', f'Concept Set {len(concept_sets_dicts)}'),
-                        "expression": cs_dict  # The ConceptSetExpression becomes the expression
+                        "name": cs_dict.get("name", f"Concept Set {len(concept_sets_dicts)}"),
+                        "expression": cs_dict,  # The ConceptSetExpression becomes the expression
                     }
                 concept_sets_dicts.append(cs_dict)
             else:
@@ -485,7 +485,7 @@ class CohortService:
             "censorWindow": {},
         }
 
-    def add_gender_filter(self, expression: Union[dict[str, Any], Any], gender: str = "male") -> dict[str, Any]:
+    def add_gender_filter(self, expression: dict[str, Any] | Any, gender: str = "male") -> dict[str, Any]:
         """Add gender filter to an existing cohort expression.
 
         This method adds an inclusion rule that restricts the cohort to subjects
@@ -534,7 +534,7 @@ class CohortService:
         """
         # Convert unified model to dict if needed
         expression_dict = _to_dict(expression)
-        
+
         gender_concept_id = 8507 if gender.lower() == "male" else 8532
         gender_rule = {
             "name": f"{gender.title()} gender",
