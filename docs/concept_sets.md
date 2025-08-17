@@ -211,10 +211,10 @@ cs_new = client.concept_sets.create(alternative_name, expression=expr_dict)
 > 
 > ```python
 > # ❌ Wrong - passing Pydantic model directly
-> cs_new = client.concept_sets.create("Name", expression=expr)
+> cs_new = client.conceptset_create("Name", expression=expr)
 > 
 > # ✅ Correct - convert to dict with proper aliases
-> cs_new = client.concept_sets.create("Name", expression=expr.model_dump(by_alias=True))
+> cs_new = client.conceptset_create("Name", expression=expr.model_dump(by_alias=True))
 > ```
 > 
 > The `by_alias=True` parameter ensures field names match the WebAPI format (e.g., `includeDescendants` instead of `include_descendants`).
@@ -224,10 +224,10 @@ cs_new = client.concept_sets.create(alternative_name, expression=expr_dict)
 ```python
 # Update full ConceptSet object 
 cs_new.expression = expr
-cs_new = client.concept_sets.update(cs_new.id, cs_new)
+cs_new = client.conceptset_update(cs_new)
 
 # Or update just the expression 
-client.concept_sets.set_expression(cs_new.id, expr)
+client.conceptset_expression(cs_new.id, expr)
 ```
 
 ## Other Operations
@@ -235,15 +235,8 @@ client.concept_sets.set_expression(cs_new.id, expr)
 ### Exporting a Concept Set  
 ```python
 # Export as CSV or JSON
-csv_text = client.concept_sets.export(cs.id, format="csv")
+csv_text = client.conceptset_export(cs.id, format="csv")
 print(csv_text.splitlines()[:5])
-```
-
-### Comparing Two Concept Sets
-```python
-# Compare overlap between concept sets
-overlap = client.concept_sets.compare(concept_sets[0].id, concept_sets[1].id)
-print(len(overlap))  # structure depends on server version
 ```
 
 ### Generation Info

@@ -28,11 +28,13 @@ class WebApiClient:
 
         # Explicit REST-style convenience methods
         # Concept set methods
-
         self.conceptset_expression = self.concept_sets.expression
         self.conceptset_items = self.concept_sets.resolve
         self.conceptset_export = self.concept_sets.export
+        self.conceptset_create = self.concept_sets.create
+        self.conceptset_update = self.concept_sets.update
         self.conceptset_generationinfo = self.concept_sets.generation_info
+
         self.info = self.info_service.get
 
         # Cohort definition methods
