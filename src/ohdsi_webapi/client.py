@@ -36,12 +36,12 @@ class WebApiClient:
         self.conceptset_generationinfo = self.concept_sets.generation_info
 
         self.info = self.info_service.get
-        
+
         # Cohort
         self.cohort_update = self.cohorts.update
         self.cohort_create = self.cohorts.create
         self.cohort_delete = self.cohorts.delete
-        
+
         # Cohort definition methods
         self.cohortdefinition_generate = self.cohorts.generate
         self.cohortdefinition_info = self.cohorts.generation_status
