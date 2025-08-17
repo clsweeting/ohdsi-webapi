@@ -53,6 +53,7 @@ Using the models from `ohdsi-cohort-schemas`:
 
 ```python
 from ohdsi_webapi.models.cohort import CohortDefinition
+from datetime import datetime
 
 from ohdsi_cohort_schemas import CohortExpression
 from ohdsi_cohort_schemas.models.cohort import PrimaryCriteria
@@ -73,7 +74,8 @@ expression = CohortExpression(
     concept_sets=[]
 )
 
-cohort_def = CohortDefinition(name="Sample Cohort", expression=expression)
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+cohort_def = CohortDefinition(name=f"Sample Cohort {timestamp}", expression=expression)
 created = client.cohorts.create(cohort_def)
 print(created.id)
 
@@ -86,34 +88,10 @@ expression_dict = {
   },
   "ConceptSets": []
 }
-cohort_def = CohortDefinition(name="Sample Cohort", expression=expression_dict)
+cohort_def = CohortDefinition(name=f"Sample Cohort Dict {timestamp}", expression=expression_dict)
 created = client.cohorts.create(cohort_def)
 ```
 The model validator gracefully handles both structured models and raw dicts.
-
-> [!CAUTION]
-> **Common ValidationError Fix:** If you get validation errors when creating `PrimaryCriteria`, avoid passing dictionaries as field values. Instead:
-> 
-> ```python
-> # ❌ Wrong - passing dicts to model fields
-> primary_criteria = PrimaryCriteria(
->     criteria_list=[],
->     observation_window={"prior_days": 0, "post_days": 0},  # Dict won't work
->     primary_criteria_limit={"type": "All"}  # Dict won't work
-> )
-> 
-> # ✅ Correct - use model instances
-> from ohdsi_cohort_schemas.models.common import ObservationWindow, Limit
-> 
-> observation_window = ObservationWindow(prior_days=0, post_days=0)
-> primary_criteria_limit = Limit(type="All")
-> 
-> primary_criteria = PrimaryCriteria(
->     criteria_list=[],
->     observation_window=observation_window,
->     primary_criteria_limit=primary_criteria_limit
-> )
-> ```
 
 
 > [!WARNING]
@@ -122,7 +100,7 @@ The model validator gracefully handles both structured models and raw dicts.
 
 ## Updating a Cohort
 ```python
-created.name = "Sample Cohort v2"
+created.name = f"Sample Cohort v2 {timestamp}"
 updated = client.cohorts.update(created.id, created)
 ```
 

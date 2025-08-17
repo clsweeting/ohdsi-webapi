@@ -28,7 +28,7 @@ pydantic = ">=2.7,<3.0"
 tenacity = ">=8.2,<9.0"
 typing-extensions = ">=4.11,<5.0"
 python-dotenv = "^1.1.1"
-ohdsi-cohort-schemas = "^0.1.0"
+ohdsi-cohort-schemas = "0.4.1"
 
 [tool.poetry.extras]
 cli = ["typer", "rich"]
