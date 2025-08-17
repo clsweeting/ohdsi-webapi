@@ -195,8 +195,7 @@ class CohortService:
         >>> status = client.cohorts.generate(cohort_id=123, source_key="SYNPUF1K")
         >>> print(f"Generation started: {status.execution_id}")
         """
-        body = {"id": cohort_id, "sourceKey": source_key}
-        data = self._http.post(f"/cohortdefinition/{cohort_id}/generate/{source_key}", json_body=body)
+        data = self._http.get(f"/cohortdefinition/{cohort_id}/generate/{source_key}")
         if isinstance(data, dict):
             return JobStatus(status=data.get("status", "UNKNOWN"), executionId=data.get("executionId"))
         return JobStatus(status="UNKNOWN")

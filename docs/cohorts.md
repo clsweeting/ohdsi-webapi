@@ -76,7 +76,7 @@ expression = CohortExpression(
 
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 cohort_def = CohortDefinition(name=f"Sample Cohort {timestamp}", expression=expression)
-created = client.cohorts.create(cohort_def)
+created = client.cohort_create(cohort_def)
 print(created.id)
 
 # Or using dict format (also supported)
@@ -89,7 +89,7 @@ expression_dict = {
   "ConceptSets": []
 }
 cohort_def = CohortDefinition(name=f"Sample Cohort Dict {timestamp}", expression=expression_dict)
-created = client.cohorts.create(cohort_def)
+created = client.cohort_create(cohort_def)
 ```
 The model validator gracefully handles both structured models and raw dicts.
 
@@ -101,12 +101,12 @@ The model validator gracefully handles both structured models and raw dicts.
 ## Updating a Cohort
 ```python
 created.name = f"Sample Cohort v2 {timestamp}"
-updated = client.cohorts.update(created.id, created)
+updated = client.cohort_update(created)
 ```
 
 ## Deleting a Cohort
 ```python
-client.cohorts.delete(updated.id)
+client.cohort_delete(updated.id)
 ```
 Use with caution—irreversible.
 
