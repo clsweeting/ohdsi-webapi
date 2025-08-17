@@ -60,7 +60,7 @@ from ohdsi_cohort_schemas.models.common import ObservationWindow, Limit
 
 # Using structured models (recommended)
 observation_window = ObservationWindow(prior_days=0, post_days=0)
-primary_criteria_limit = Limit(type="All")
+primary_criteria_limit = Limit(Type="All")  # Use alias field name
 
 primary_criteria = PrimaryCriteria(
     criteria_list=[],
@@ -92,7 +92,7 @@ created = client.cohorts.create(cohort_def)
 The model validator gracefully handles both structured models and raw dicts.
 
 > [!CAUTION]
-> **Common ValidationError Fix:** If you get validation errors when creating `PrimaryCriteria`, avoid passing dictionaries as field values. Instead:
+> **Common ValidationError Fix:** If you get validation errors when creating models, check field names and avoid passing dictionaries as field values:
 > 
 > ```python
 > # ❌ Wrong - passing dicts to model fields
@@ -102,11 +102,14 @@ The model validator gracefully handles both structured models and raw dicts.
 >     primary_criteria_limit={"type": "All"}  # Dict won't work
 > )
 > 
-> # ✅ Correct - use model instances
+> # ❌ Wrong - incorrect field name (use alias for models without populate_by_name)
+> primary_criteria_limit = Limit(type="All")  # Should be Type="All"
+> 
+> # ✅ Correct - use model instances with correct field names
 > from ohdsi_cohort_schemas.models.common import ObservationWindow, Limit
 > 
 > observation_window = ObservationWindow(prior_days=0, post_days=0)
-> primary_criteria_limit = Limit(type="All")
+> primary_criteria_limit = Limit(Type="All")  # Use alias field name
 > 
 > primary_criteria = PrimaryCriteria(
 >     criteria_list=[],

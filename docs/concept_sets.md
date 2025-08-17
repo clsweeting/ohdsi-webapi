@@ -154,6 +154,7 @@ diabetes_sets = [cs for cs in all_concept_sets if "diabetes" in cs.name.lower()]
 
 ```python
 from ohdsi_cohort_schemas import ConceptSetExpression, ConceptSetItem, Concept
+from datetime import datetime
 
 # Build expression using structured models (recommended)
 metformin_concept = Concept(
@@ -174,8 +175,12 @@ metformin_item = ConceptSetItem(
 
 expr = ConceptSetExpression(items=[metformin_item])
 
+# Create unique name with timestamp to avoid 409 conflicts
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+concept_set_name = f"Metformin Only - {timestamp}"
+
 # Create the concept set - convert model to dict
-cs_new = client.concept_sets.create("Metformin Only", expression=expr.model_dump(by_alias=True))
+cs_new = client.concept_sets.create(concept_set_name, expression=expr.model_dump(by_alias=True))
 print(cs_new.id)
 
 # Alternative: Build expression as dict (also supported)
@@ -196,7 +201,9 @@ expr_dict = {
     ]
 }
 
-cs_new = client.concept_sets.create("Metformin Only", expression=expr_dict)
+# Use same timestamp approach for alternative method
+alternative_name = f"Metformin Only (Dict) - {timestamp}"
+cs_new = client.concept_sets.create(alternative_name, expression=expr_dict)
 ```
 
 > [!CAUTION]
