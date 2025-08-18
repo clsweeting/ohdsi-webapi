@@ -12,7 +12,7 @@ def test_cohort_get():
     )
     client = WebApiClient("http://test/WebAPI")
     try:
-        coh = client.cohorts.get(5)
+        coh = client.cohortdefs.get(5)
         assert coh.name == "Test Cohort"
     finally:
         client.close()

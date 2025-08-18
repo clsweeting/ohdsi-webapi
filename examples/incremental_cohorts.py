@@ -55,7 +55,7 @@ async def build_diabetes_cohort_example():
     print(f"Using data source: {source_key}")
 
     # 1. Create concept sets
-    diabetes_concept_set = client.cohorts.create_concept_set(
+    diabetes_concept_set = client.cohortdefs.create_concept_set(
         concept_id=201826, name="Type 2 Diabetes", include_descendants=True  # Type 2 diabetes mellitus
     )
 
@@ -78,7 +78,7 @@ async def build_diabetes_cohort_example():
 
     # 3. Build cohort step by step
     try:
-        results = await client.cohorts.build_incremental_cohort(
+        results = await client.cohortdefs.build_incremental_cohort(
             source_key=source_key, base_name="Diabetes Males 40+", concept_sets=concept_sets, filters=filters
         )
 
@@ -103,7 +103,7 @@ async def build_diabetes_cohort_example():
         print(f"📋 Detailed Statistics for: {final_cohort.name}")
         print("-" * 50)
 
-        inclusion_stats = client.cohorts.inclusion_rules(final_cohort.id, source_key)
+        inclusion_stats = client.cohortdefs.inclusion_rules(final_cohort.id, source_key)
         for rule in inclusion_stats:
             print(f"✓ {rule.name}: {rule.personCount:,} people met this criteria")
 
@@ -144,37 +144,37 @@ async def quick_diabetes_demo():
 
     # Manual step-by-step approach
     # Step 1: Create base diabetes cohort
-    diabetes_cs = client.cohorts.create_concept_set(201826, "Type 2 Diabetes")
-    base_expr = client.cohorts.create_base_cohort_expression([diabetes_cs])
+    diabetes_cs = client.cohortdefs.create_concept_set(201826, "Type 2 Diabetes")
+    base_expr = client.cohortdefs.create_base_cohort_expression([diabetes_cs])
 
     step1_cohort = CohortDefinition(name="Step 1: All diabetes patients", expression=base_expr)
 
-    cohort1 = client.cohorts.create(step1_cohort)
-    client.cohorts.generate(cohort1.id, source_key)
-    client.cohorts.poll_generation(cohort1.id, source_key)
-    counts1 = client.cohorts.counts(cohort1.id)
+    cohort1 = client.cohortdefs.create(step1_cohort)
+    client.cohortdefs.generate(cohort1.id, source_key)
+    client.cohortdefs.poll_generation(cohort1.id, source_key)
+    counts1 = client.cohortdefs.counts(cohort1.id)
 
     print(f"1️⃣  All diabetes patients: {counts1[0].subjectCount if counts1 else 0:,}")
 
     # Step 2: Add male filter
-    male_expr = client.cohorts.add_gender_filter(base_expr, "male")
+    male_expr = client.cohortdefs.add_gender_filter(base_expr, "male")
     step2_cohort = CohortDefinition(name="Step 2: Male diabetes patients", expression=male_expr)
 
-    cohort2 = client.cohorts.create(step2_cohort)
-    client.cohorts.generate(cohort2.id, source_key)
-    client.cohorts.poll_generation(cohort2.id, source_key)
-    counts2 = client.cohorts.counts(cohort2.id)
+    cohort2 = client.cohortdefs.create(step2_cohort)
+    client.cohortdefs.generate(cohort2.id, source_key)
+    client.cohortdefs.poll_generation(cohort2.id, source_key)
+    counts2 = client.cohortdefs.counts(cohort2.id)
 
     print(f"2️⃣  Male diabetes patients: {counts2[0].subjectCount if counts2 else 0:,}")
 
     # Step 3: Add age filter
-    age_expr = client.cohorts.add_age_filter(male_expr, 40)
+    age_expr = client.cohortdefs.add_age_filter(male_expr, 40)
     step3_cohort = CohortDefinition(name="Step 3: Male diabetes patients 40+", expression=age_expr)
 
-    cohort3 = client.cohorts.create(step3_cohort)
-    client.cohorts.generate(cohort3.id, source_key)
-    client.cohorts.poll_generation(cohort3.id, source_key)
-    counts3 = client.cohorts.counts(cohort3.id)
+    cohort3 = client.cohortdefs.create(step3_cohort)
+    client.cohortdefs.generate(cohort3.id, source_key)
+    client.cohortdefs.poll_generation(cohort3.id, source_key)
+    counts3 = client.cohortdefs.counts(cohort3.id)
 
     print(f"3️⃣  Male diabetes patients 40+: {counts3[0].subjectCount if counts3 else 0:,}")
 

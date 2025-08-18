@@ -70,11 +70,11 @@ async def advanced_filters_demo():
         # Define concept sets for comprehensive example
         print("\n1️⃣  Creating concept sets...")
         concept_sets = [
-            client.cohorts.create_concept_set(201826, "Type 2 Diabetes"),  # 0
-            client.cohorts.create_concept_set(3655963, "Hemoglobin A1c"),  # 1 - HbA1c measurement
-            client.cohorts.create_concept_set(1502826, "Metformin"),  # 2 - Metformin drug
-            client.cohorts.create_concept_set(316866, "Hypertensive disease"),  # 3 - Hypertension
-            client.cohorts.create_concept_set(314666, "Chronic kidney disease"),  # 4 - CKD
+            client.cohortdefs.create_concept_set(201826, "Type 2 Diabetes"),  # 0
+            client.cohortdefs.create_concept_set(3655963, "Hemoglobin A1c"),  # 1 - HbA1c measurement
+            client.cohortdefs.create_concept_set(1502826, "Metformin"),  # 2 - Metformin drug
+            client.cohortdefs.create_concept_set(316866, "Hypertensive disease"),  # 3 - Hypertension
+            client.cohortdefs.create_concept_set(314666, "Chronic kidney disease"),  # 4 - CKD
         ]
         print(f"   ✅ Created {len(concept_sets)} concept sets")
 
@@ -132,7 +132,7 @@ async def advanced_filters_demo():
 
         # Build the cohort
         print("\n3️⃣  Building advanced cohort...")
-        results = await client.cohorts.build_incremental_cohort(
+        results = await client.cohortdefs.build_incremental_cohort(
             source_key=source_key, base_name="Advanced Diabetes Study", concept_sets=concept_sets, filters=filters
         )
 
@@ -178,30 +178,30 @@ def show_filter_examples(base_url: str):
         client = WebApiClient(base_url=base_url)
 
     # Create sample concept sets
-    diabetes_cs = client.cohorts.create_concept_set(201826, "Diabetes")
-    hba1c_cs = client.cohorts.create_concept_set(3655963, "HbA1c")
+    diabetes_cs = client.cohortdefs.create_concept_set(201826, "Diabetes")
+    hba1c_cs = client.cohortdefs.create_concept_set(3655963, "HbA1c")
 
     # Base expression
-    expr = client.cohorts.create_base_cohort_expression([diabetes_cs, hba1c_cs])
+    expr = client.cohortdefs.create_base_cohort_expression([diabetes_cs, hba1c_cs])
 
     print("1. Observation Period Filter:")
-    obs_expr = client.cohorts.add_observation_period_filter(expr, 365, 180)
+    obs_expr = client.cohortdefs.add_observation_period_filter(expr, 365, 180)
     print("   ✅ Added continuous enrollment requirement")
 
     print("\n2. Visit Type Filter:")
-    visit_expr = client.cohorts.add_visit_filter(obs_expr, [9201, 9203], 30)  # Inpatient or ER
+    visit_expr = client.cohortdefs.add_visit_filter(obs_expr, [9201, 9203], 30)  # Inpatient or ER
     print("   ✅ Added inpatient/ER visit requirement")
 
     print("\n3. Measurement Filter:")
-    measurement_expr = client.cohorts.add_measurement_filter(visit_expr, 1, value_min=7.0, value_max=10.0, days_before=180)
+    measurement_expr = client.cohortdefs.add_measurement_filter(visit_expr, 1, value_min=7.0, value_max=10.0, days_before=180)
     print("   ✅ Added HbA1c 7-10% requirement")
 
     print("\n4. Drug Era Filter:")
-    drug_expr = client.cohorts.add_drug_era_filter(measurement_expr, 2, era_length_min=90, days_before=365)
+    drug_expr = client.cohortdefs.add_drug_era_filter(measurement_expr, 2, era_length_min=90, days_before=365)
     print("   ✅ Added 90+ day medication requirement")
 
     print("\n5. Prior Observation Filter:")
-    prior_expr = client.cohorts.add_prior_observation_filter(drug_expr, 365)
+    prior_expr = client.cohortdefs.add_prior_observation_filter(drug_expr, 365)
     print("   ✅ Added 1-year prior data requirement")
 
     print("\n📊 Final expression structure:")
@@ -285,8 +285,8 @@ async def lab_values_example():
 
     print("Common lab value filters:")
 
-    diabetes_cs = client.cohorts.create_concept_set(201826, "Diabetes")
-    client.cohorts.create_base_cohort_expression([diabetes_cs])
+    diabetes_cs = client.cohortdefs.create_concept_set(201826, "Diabetes")
+    client.cohortdefs.create_base_cohort_expression([diabetes_cs])
 
     for i, (concept_id, name, min_val, max_val, unit) in enumerate(lab_examples):
         print(f"\n{i+1}. {name} ({min_val}-{max_val} {unit}):")

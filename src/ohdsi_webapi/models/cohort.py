@@ -7,6 +7,13 @@ from ohdsi_cohort_schemas import CohortExpression
 from pydantic import BaseModel, Field, field_validator
 
 
+class CohortSubject(BaseModel):
+    subject_id: int = Field(alias="subjectId")
+    cohort_start_date: str = Field(alias="cohortStartDate")
+    cohort_end_date: str = Field(alias="cohortEndDate")
+    cohort_definition_id: int = Field(alias="cohortDefinitionId")
+
+
 class CohortDefinition(BaseModel):
     id: int | None = None
     name: str

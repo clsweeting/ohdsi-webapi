@@ -32,7 +32,7 @@ class JobsService:
         Examples
         --------
         >>> # Start a cohort generation
-        >>> job = client.cohorts.generate(cohort_id=123, source_key="SYNPUF1K")
+        >>> job = client.cohortdefinition_generate(cohort_id=123, source_key="SYNPUF1K")
         >>>
         >>> # Check job status
         >>> status = client.jobs.status(job.execution_id)

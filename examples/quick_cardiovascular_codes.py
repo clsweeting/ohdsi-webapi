@@ -94,7 +94,7 @@ async def create_cvd_concept_set_example():
 
     # Example 1: Broad cardiovascular disease
     print("1. Broad cardiovascular disease concept set:")
-    client.cohorts.create_concept_set(
+    client.cohortdefs.create_concept_set(
         concept_id=194990, name="All Cardiovascular Disease", include_descendants=True  # "Cardiovascular disease"
     )
     print("   ✅ Includes ALL cardiovascular conditions")

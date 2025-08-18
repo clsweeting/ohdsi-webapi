@@ -1,9 +1,28 @@
-# Cohorts
+# Cohort Definitions & Cohorts 
 
-Cohorts define groups of persons meeting inclusion criteria over time. Thstatus = client.cohorts.poll_generation(cohort_id=123, source_key="EUNOMIA") WebAPI stores a cohort *definition* (JSON expression) and can *generate* the result set (cohort entry rows) in a target CDM source.
+OHDSI WebAPI differentiates between Cohorts & Cohort Definitions: 
+
+For Cohorts:
+- `GET /cohort/id/` 
+
+For Cohort Definitions: 
+- `GET /cohortdefinition/` 
+- `POST /cohortdefinition` 
+- `GET/POST/PUT/DELETE /cohortdefinition/{id}` 
+- etc
+
+What's the difference ? 
+
+`/cohortdefinition/` returns metadata about cohort definitions stored in the WebAPI database.
+Think of it as: The blueprints or saved definitions of what a cohort is (e.g., “Patients with diabetes diagnosed after age 40”).
+You call this when you want to know what cohorts exist in the system and see their definitions/metadata.
+
+`/cohort/{id}` returns the actual cohort entities (the patients/subjects) that belong to a given cohort definition.
+It returns the subject IDs, cohort start and end dates and the cohort definition ID which generated it. 
+You call this when you want to see **who** is in the cohort (the rows in the COHORT table).
 
 
-## Cohort Logic 
+## Cohort Definition Logic 
 
 Concept Sets are built from OMOP Vocabulary concepts. They're essentialy lists of standard concepts which can be referenced in Cohort Logic. See [Concept Sets](./concept_sets.md)
 
@@ -33,15 +52,15 @@ client = WebApiClient("https://atlas-demo.ohdsi.org/WebAPI")
 
 ## Fetch Existing Cohort Definition
 ```python
-cohort = client.cohort(5)     # Equivalent to GET /cohort/{id}
-print(cohort.name, cohort.expression_type)
+definition = client.cohortdefinition(5)     
+print(definition.name, definition.expression_type)
 ```
 The `expression` is a nested structure; this client stores it as a raw `dict` but can work with structured models from `ohdsi-cohort-schemas`.
 
 ```python
-print(cohort) 
+print(definition) 
 
-print(cohort.expression)
+print(definition.expression)
 ```
 
 
@@ -76,7 +95,7 @@ expression = CohortExpression(
 
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 cohort_def = CohortDefinition(name=f"Sample Cohort {timestamp}", expression=expression)
-created = client.cohort_create(cohort_def)
+created = client.cohortdefinition_create(cohort_def)
 print(created.id)
 
 # Or using dict format (also supported)
@@ -89,7 +108,7 @@ expression_dict = {
   "ConceptSets": []
 }
 cohort_def = CohortDefinition(name=f"Sample Cohort Dict {timestamp}", expression=expression_dict)
-created = client.cohort_create(cohort_def)
+created = client.cohortdefinition_create(cohort_def)
 ```
 The model validator gracefully handles both structured models and raw dicts.
 
@@ -101,54 +120,64 @@ The model validator gracefully handles both structured models and raw dicts.
 ## Updating a Cohort
 ```python
 created.name = f"Sample Cohort v2 {timestamp}"
-updated = client.cohort_update(created)
+updated = client.cohortdefinition_update(created)
 ```
 
 ## Deleting a Cohort
 ```python
-client.cohort_delete(updated.id)
+client.cohortdefinition_delete(updated.id)
 ```
 Use with caution—irreversible.
 
 ## Generating a Cohort
 You need a source key (from `client.source.sources()`) for a CDM with a results schema configured.
+
 ```python
 sources = client.source.sources()
 source_key = sources[0].source_key
-status = client.cohorts.generate(cohort.id, source_key)
-print(status.status)
+job = client.cohortdefinition_generate(cohort.id, source_key)
+
+# result should be something like: 
+# execution_id=80425 status='STARTING' start_time=None end_time=None
+print(job.status)
+print(job.execution_id)
 ```
-This returns an initial status—often a background job.
+
 
 ## Polling for Completion
+
 ```python
 # Poll for completion
-final_status = client.cohorts.poll_generation(cohort_id=cohort.id, source_key=source_key)
+final_status = client.cohortdefs.poll_generation(cohort_id=cohort.id, source_key=source_key)
 print(final_status.status)
 ```
 Terminal statuses: COMPLETED, FAILED, STOPPED.
 
 ## Inclusion Rule Stats
 After a successful generation:
+
 ```python
-stats = client.cohorts.inclusion_rules(cohort_id=cohort.id, source_key=source_key)
+stats = client.cohortdefs.inclusion_rules(cohort_id=cohort.id, source_key=source_key)
 for rule in stats:
     print(rule.id, rule.name, rule.person_count)
 ```
 
 ## Counts
+
 ```python
-counts = client.cohorts.counts(cohort_id=cohort.id)
+counts = client.cohortdefs.counts(cohort_id=cohort.id)
 for c in counts:
     print(c.cohort_definition_id, c.subject_count, c.entry_count)
 ```
 
 ## Error Handling
 Generation can fail due to SQL translation or data issues. Wrap with try/except:
+
 ```python
 from ohdsi_webapi.exceptions import WebApiError, JobTimeoutError
+
 try:
-    client.cohorts.poll_generation(cohort_id=cohort.id, source_key=source_key)
+    client.cohortdefs.poll_generation(cohort_id=cohort.id, source_key=source_key)
 except JobTimeoutError:
     print("Generation timed out")
 except WebApiError as e:
