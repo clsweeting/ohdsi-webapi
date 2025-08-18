@@ -3,7 +3,8 @@ from __future__ import annotations
 from .auth import AuthStrategy
 from .cache import cache_stats, clear_cache
 from .http import HttpExecutor
-from .services.cohorts import CohortService
+from .models.cohort import CohortSubject
+from .services.cohort_definition import CohortDefinitionService
 from .services.concept_sets import ConceptSetService
 from .services.info import InfoService
 from .services.jobs import JobsService
@@ -23,10 +24,9 @@ class WebApiClient:
         self.vocabulary = VocabularyService(self._http)
         self.vocab = self.vocabulary  # Alias for convenience
         self.concept_sets = ConceptSetService(self._http)
-        self.cohorts = CohortService(self._http)
+        self.cohortdefs = CohortDefinitionService(self._http)
         self.jobs = JobsService(self._http)
 
-        # Explicit REST-style convenience methods
         # Concept set methods
         self.conceptset_expression = self.concept_sets.expression
         self.conceptset_items = self.concept_sets.resolve
@@ -37,15 +37,13 @@ class WebApiClient:
 
         self.info = self.info_service.get
 
-        # Cohort
-        self.cohort_update = self.cohorts.update
-        self.cohort_create = self.cohorts.create
-        self.cohort_delete = self.cohorts.delete
-
         # Cohort definition methods
-        self.cohortdefinition_generate = self.cohorts.generate
-        self.cohortdefinition_info = self.cohorts.generation_status
-        self.cohortdefinition_inclusionrules = self.cohorts.inclusion_rules
+        self.cohortdefinition_generate = self.cohortdefs.generate
+        self.cohortdefinition_info = self.cohortdefs.generation_status
+        self.cohortdefinition_inclusionrules = self.cohortdefs.inclusion_rules
+        self.cohortdefinition_create = self.cohortdefs.create
+        self.cohortdefinition_update = self.cohortdefs.update
+        self.cohortdefinition_delete = self.cohortdefs.delete
 
         # Job methods
         self.job_status = self.jobs.status
@@ -63,33 +61,41 @@ class WebApiClient:
         else:
             return self.concept_sets.list()
 
-    def cohort(self, id: int):
-        """Get a specific cohort by ID.
+    def cohort(self, id: int) -> list[CohortSubject]:
+        """Get actual cohort patient data by cohort definition ID.
+
+        Retrieves all cohort entities for the given cohort definition id from the COHORT table
+        Returns the list of subjects/patients in the generated cohort.
 
         Equates to the WebAPI endpoint:
-
         GET /cohort/{id}
         """
-        return self.cohorts.get(id)
+        from .models.cohort import CohortSubject
+
+        data = self._http.get(f"/cohort/{id}")
+        return [CohortSubject.model_validate(item) for item in data]
+
+    def cohortdefinition(self, id: int):
+        """Get a specific cohort definition by ID.
+
+        Equates to the WebAPI endpoints:
+
+        GET /cohortdefinition
+        GET /cohortdefinition/{id}
+        """
+        if id:
+            return self.cohortdefs.get(id)
+        else:
+            return self.cohortdefs.list()
 
     def sources(self):
         """Get all available data sources.
-
-        .. deprecated::
-            Use :attr:`source.sources()` instead. This method is kept for backward compatibility.
 
         Returns
         -------
         list of Source
             List of available data source configurations.
 
-        Examples
-        --------
-        >>> # Old way (deprecated but still works)
-        >>> sources = client.sources()
-        >>>
-        >>> # New preferred way
-        >>> sources = client.source.sources()
         """
         return self.source.sources()
 

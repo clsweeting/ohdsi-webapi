@@ -16,7 +16,7 @@ class TestExplicitAPI:
         """Test that core service objects are available."""
         # Core services should exist
         assert hasattr(client, "concept_sets")
-        assert hasattr(client, "cohorts")
+        assert hasattr(client, "cohortdefs")
         assert hasattr(client, "vocabulary")
         assert hasattr(client, "vocab")
         assert hasattr(client, "info")
@@ -33,10 +33,10 @@ class TestExplicitAPI:
         assert hasattr(client.concept_sets, "expression")
         assert hasattr(client.concept_sets, "resolve")
 
-        assert hasattr(client.cohorts, "list")
-        assert hasattr(client.cohorts, "get")
-        assert hasattr(client.cohorts, "generate")
-        assert hasattr(client.cohorts, "generation_status")
+        assert hasattr(client.cohortdefs, "list")
+        assert hasattr(client.cohortdefs, "get")
+        assert hasattr(client.cohortdefs, "generate")
+        assert hasattr(client.cohortdefs, "generation_status")
 
     def test_conceptset_convenience_methods(self, client):
         """Test that conceptset convenience methods are explicitly available."""
@@ -71,9 +71,9 @@ class TestExplicitAPI:
         assert callable(client.cohortdefinition_inclusionrules)
 
         # Should be the same as the service methods
-        assert client.cohortdefinition_generate == client.cohorts.generate
-        assert client.cohortdefinition_info == client.cohorts.generation_status
-        assert client.cohortdefinition_inclusionrules == client.cohorts.inclusion_rules
+        assert client.cohortdefinition_generate == client.cohortdefs.generate
+        assert client.cohortdefinition_info == client.cohortdefs.generation_status
+        assert client.cohortdefinition_inclusionrules == client.cohortdefs.inclusion_rules
 
     def test_job_convenience_methods(self, client):
         """Test that job convenience methods are available."""
@@ -87,8 +87,8 @@ class TestExplicitAPI:
         # Original service methods should be callable
         assert callable(client.concept_sets.list)
         assert callable(client.concept_sets.get)
-        assert callable(client.cohorts.list)
-        assert callable(client.cohorts.get)
+        assert callable(client.cohortdefs.list)
+        assert callable(client.cohortdefs.get)
         assert callable(client.vocabulary.search)
         assert callable(client.info)  # info is now a shortcut method, not a service
         assert callable(client.source.sources)
@@ -122,7 +122,7 @@ class TestExplicitAPI:
 
         # Some specific convenience methods are still intentionally available
         assert callable(getattr(client, "conceptset", None))  # Explicit convenience method
-        assert not callable(getattr(client, "cohortdefinition", None))  # No base method, only cohortdefinition_*
+        assert callable(getattr(client, "cohortdefinition", None))  # Explicit convenience method
 
     def test_cache_management_methods(self, client):
         """Test that cache management methods are available."""

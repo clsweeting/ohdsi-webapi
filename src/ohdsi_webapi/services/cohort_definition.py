@@ -30,7 +30,7 @@ def _is_unified_model(obj: Any) -> bool:
     return hasattr(obj, "model_dump") or hasattr(obj, "dict")
 
 
-class CohortService:
+class CohortDefinitionService:
     """Service for managing cohort definitions and generation.
 
     This service provides comprehensive functionality for creating, managing,
@@ -51,7 +51,7 @@ class CohortService:
 
         Examples
         --------
-        >>> cohorts = client.cohorts.list()
+        >>> cohorts = client.cohortdefs.list()
         >>> print(f"Found {len(cohorts)} cohort definitions")
         >>> for cohort in cohorts[:5]:  # Show first 5
         ...     print(f"  {cohort.id}: {cohort.name}")
@@ -86,7 +86,7 @@ class CohortService:
         Examples
         --------
         >>> client = WebApiClient(base_url="http://localhost:8080/WebAPI")
-        >>> cohort = client.cohorts.get(123)
+        >>> cohort = client.cohortdefs.get(123)
         >>> print(f"Cohort: {cohort.name}")
         """
         data = self._http.get(f"/cohortdefinition/{cohort_id}")
@@ -120,7 +120,7 @@ class CohortService:
         ...     name="Test Cohort",
         ...     expression={"primaryCriteria": {...}}
         ... )
-        >>> created = client.cohorts.create(cohort_def)
+        >>> created = client.cohortdefs.create(cohort_def)
         >>> print(f"Created cohort ID: {created.id}")
         """
         payload = cohort.model_dump(exclude_none=True)
@@ -149,9 +149,9 @@ class CohortService:
 
         Examples
         --------
-        >>> cohort = client.cohorts.get(123)
+        >>> cohort = client.cohortdefs.get(123)
         >>> cohort.name = "Updated Name"
-        >>> updated = client.cohorts.update(cohort)
+        >>> updated = client.cohortdefs.update(cohort)
         """
         if cohort.id is None:
             raise ValueError("CohortDefinition id required for update")
@@ -171,7 +171,7 @@ class CohortService:
 
         Examples
         --------
-        >>> client.cohorts.delete(123)
+        >>> client.cohortdefs.delete(123)
         """
         self._http.delete(f"/cohortdefinition/{cohort_id}")
 
@@ -192,7 +192,7 @@ class CohortService:
 
         Examples
         --------
-        >>> status = client.cohorts.generate(cohort_id=123, source_key="SYNPUF1K")
+        >>> status = client.cohortdefs.generate(cohort_id=123, source_key="SYNPUF1K")
         >>> print(f"Generation started: {status.execution_id}")
         """
         data = self._http.get(f"/cohortdefinition/{cohort_id}/generate/{source_key}")
@@ -217,7 +217,7 @@ class CohortService:
 
         Examples
         --------
-        >>> status = client.cohorts.generation_status(123, "SYNPUF1K")
+        >>> status = client.cohortdefs.generation_status(123, "SYNPUF1K")
         >>> print(f"Status: {status.status}")
         """
         data = self._http.get(f"/cohortdefinition/{cohort_id}/info")  # includes generation info
@@ -251,8 +251,8 @@ class CohortService:
         Examples
         --------
         >>> # Start generation and wait for completion
-        >>> client.cohorts.generate(123, "SYNPUF1K")
-        >>> final_status = client.cohorts.poll_generation(123, "SYNPUF1K")
+        >>> client.cohortdefs.generate(123, "SYNPUF1K")
+        >>> final_status = client.cohortdefs.poll_generation(123, "SYNPUF1K")
         >>> if final_status.status == "COMPLETED":
         ...     print("Generation successful!")
         """
@@ -281,7 +281,7 @@ class CohortService:
 
         Examples
         --------
-        >>> counts = client.cohorts.counts(123)
+        >>> counts = client.cohortdefs.counts(123)
         >>> for count in counts:
         ...     print(f"{count.source_key}: {count.subject_count:,} subjects")
         """
@@ -338,7 +338,7 @@ class CohortService:
         Examples
         --------
         >>> # Traditional usage with concept ID
-        >>> diabetes_cs = client.cohorts.create_concept_set(
+        >>> diabetes_cs = client.cohortdefs.create_concept_set(
         ...     concept_id=201826,
         ...     name="Type 2 Diabetes",
         ...     include_descendants=True
@@ -351,14 +351,14 @@ class CohortService:
         ...     concept_name="Type 2 diabetes mellitus",
         ...     vocabulary_id="SNOMED"
         ... )
-        >>> diabetes_cs = client.cohorts.create_concept_set(
+        >>> diabetes_cs = client.cohortdefs.create_concept_set(
         ...     concept_id=concept,  # Pass Concept object directly
         ...     name="",  # Ignored - taken from Concept
         ...     include_descendants=True
         ... )
         >>>
         >>> # Use in cohort expression (both ways produce same result)
-        >>> expression = client.cohorts.create_base_cohort_expression([diabetes_cs])
+        >>> expression = client.cohortdefs.create_base_cohort_expression([diabetes_cs])
 
         Notes
         -----
@@ -422,9 +422,9 @@ class CohortService:
         Examples
         --------
         >>> # Traditional usage with dicts
-        >>> diabetes_cs = client.cohorts.create_concept_set(201826, "Diabetes")
-        >>> hypertension_cs = client.cohorts.create_concept_set(316866, "Hypertension")
-        >>> expression = client.cohorts.create_base_cohort_expression(
+        >>> diabetes_cs = client.cohortdefs.create_concept_set(201826, "Diabetes")
+        >>> hypertension_cs = client.cohortdefs.create_concept_set(316866, "Hypertension")
+        >>> expression = client.cohortdefs.create_base_cohort_expression(
         ...     concept_sets=[diabetes_cs, hypertension_cs],
         ...     primary_concept_set_id=0  # Use diabetes as primary
         ... )
@@ -432,7 +432,7 @@ class CohortService:
         >>> # NEW: Using unified models
         >>> from ohdsi_cohort_schemas import ConceptSetExpression
         >>> diabetes_expr = ConceptSetExpression(items=[...])  # Unified model
-        >>> expression = client.cohorts.create_base_cohort_expression(
+        >>> expression = client.cohortdefs.create_base_cohort_expression(
         ...     concept_sets=[diabetes_expr],  # Pass unified models directly
         ...     primary_concept_set_id=0
         ... )
@@ -507,14 +507,14 @@ class CohortService:
         Examples
         --------
         >>> # Traditional usage with dict
-        >>> diabetes_cs = client.cohorts.create_concept_set(201826, "Diabetes")
-        >>> expression = client.cohorts.create_base_cohort_expression([diabetes_cs])
-        >>> male_expression = client.cohorts.add_gender_filter(expression, "male")
+        >>> diabetes_cs = client.cohortdefs.create_concept_set(201826, "Diabetes")
+        >>> expression = client.cohortdefs.create_base_cohort_expression([diabetes_cs])
+        >>> male_expression = client.cohortdefs.add_gender_filter(expression, "male")
         >>>
         >>> # NEW: Using unified models
         >>> from ohdsi_cohort_schemas import CohortExpression
         >>> expr_model = CohortExpression(...)  # Unified model
-        >>> male_expression = client.cohorts.add_gender_filter(expr_model, "male")
+        >>> male_expression = client.cohortdefs.add_gender_filter(expr_model, "male")
         >>>
         >>> # Create cohort (both ways work)
         >>> cohort = CohortDefinition(
@@ -577,10 +577,10 @@ class CohortService:
         Examples
         --------
         >>> # Add minimum age filter
-        >>> expression = client.cohorts.add_age_filter(expression, min_age=18)
+        >>> expression = client.cohortdefs.add_age_filter(expression, min_age=18)
         >>>
         >>> # Add age range filter
-        >>> expression = client.cohorts.add_age_filter(
+        >>> expression = client.cohortdefs.add_age_filter(
         ...     expression,
         ...     min_age=40,
         ...     max_age=65
@@ -1166,7 +1166,7 @@ class CohortService:
         Examples
         --------
         >>> # Define concept sets
-        >>> diabetes_cs = client.cohorts.create_concept_set(201826, "Diabetes")
+        >>> diabetes_cs = client.cohortdefs.create_concept_set(201826, "Diabetes")
         >>>
         >>> # Define filters to apply incrementally
         >>> filters = [
@@ -1184,7 +1184,7 @@ class CohortService:
         ... ]
         >>>
         >>> # Build incrementally
-        >>> results = await client.cohorts.build_incremental_cohort(
+        >>> results = await client.cohortdefs.build_incremental_cohort(
         ...     source_key="SYNPUF1K",
         ...     base_name="Diabetes Study",
         ...     concept_sets=[diabetes_cs],

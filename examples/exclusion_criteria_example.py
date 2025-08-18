@@ -40,18 +40,18 @@ async def exclusion_criteria_example():
         print("\n1️⃣  Setting up concept sets...")
 
         # Primary condition: Heart failure
-        heart_failure_cs = client.cohorts.create_concept_set(concept_id=444094, name="Heart Failure")  # Congestive heart failure
+        heart_failure_cs = client.cohortdefs.create_concept_set(concept_id=444094, name="Heart Failure")  # Congestive heart failure
 
         # Exclusion conditions
-        cancer_cs = client.cohorts.create_concept_set(
+        cancer_cs = client.cohortdefs.create_concept_set(
             concept_id=443392, name="Cancer", include_descendants=True  # Malignant neoplastic disease
         )
 
-        chemotherapy_cs = client.cohorts.create_concept_set(
+        chemotherapy_cs = client.cohortdefs.create_concept_set(
             concept_id=21601782, name="Chemotherapy Drugs", include_descendants=True  # Chemotherapy
         )
 
-        cardiac_surgery_cs = client.cohorts.create_concept_set(
+        cardiac_surgery_cs = client.cohortdefs.create_concept_set(
             concept_id=4336464, name="Cardiac Surgery", include_descendants=True  # Cardiac surgery
         )
 
@@ -91,7 +91,7 @@ async def exclusion_criteria_example():
         print("\n2️⃣  Building cohort with inclusion + exclusion criteria...")
 
         # Step 4: Build incremental cohort with exclusions
-        results = await client.cohorts.build_incremental_cohort(
+        results = await client.cohortdefs.build_incremental_cohort(
             source_key=source_key,
             base_name="Heart Failure Study",
             concept_sets=concept_sets,
@@ -164,11 +164,11 @@ async def simple_exclusion_example():
     print("Scenario: Heart failure patients, excluding those with cancer history")
 
     # Create concept sets
-    heart_failure_cs = client.cohorts.create_concept_set(444094, "Heart Failure")
-    cancer_cs = client.cohorts.create_concept_set(443392, "Cancer", True)
+    heart_failure_cs = client.cohortdefs.create_concept_set(444094, "Heart Failure")
+    cancer_cs = client.cohortdefs.create_concept_set(443392, "Cancer", True)
 
     # Start with base expression
-    base_expr = client.cohorts.create_base_cohort_expression([heart_failure_cs, cancer_cs])
+    base_expr = client.cohortdefs.create_base_cohort_expression([heart_failure_cs, cancer_cs])
 
     print("\n📋 Base expression created")
     print(f"   Concept sets: {len(base_expr['conceptSets'])}")
@@ -176,7 +176,7 @@ async def simple_exclusion_example():
     print(f"   Exclusion criteria: {len(base_expr['exclusionCriteria'])}")
 
     # Add exclusion for cancer history
-    exclusion_expr = client.cohorts.add_exclusion_condition(
+    exclusion_expr = client.cohortdefs.add_exclusion_condition(
         base_expr, concept_set_id=1, days_before=1825, exclusion_name="No cancer in last 5 years"  # Cancer concept set  # 5 years
     )
 
@@ -207,8 +207,8 @@ async def common_exclusion_patterns():
     client = WebApiClient()
 
     # Example base expression
-    base_cs = client.cohorts.create_concept_set(201826, "Type 2 Diabetes")
-    client.cohorts.create_base_cohort_expression([base_cs])
+    base_cs = client.cohortdefs.create_concept_set(201826, "Type 2 Diabetes")
+    client.cohortdefs.create_base_cohort_expression([base_cs])
 
     patterns = [
         {

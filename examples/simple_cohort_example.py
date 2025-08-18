@@ -57,56 +57,56 @@ async def example_incremental_cohort():
     print("=" * 60)
 
     # 1. Create concept set for diabetes
-    diabetes_concepts = client.cohorts.create_concept_set(concept_id=201826, name="Diabetes Type 2")  # Type 2 diabetes
+    diabetes_concepts = client.cohortdefs.create_concept_set(concept_id=201826, name="Diabetes Type 2")  # Type 2 diabetes
 
     # 2. Start with base cohort (just diabetes)
-    base_expression = client.cohorts.create_base_cohort_expression([diabetes_concepts])
+    base_expression = client.cohortdefs.create_base_cohort_expression([diabetes_concepts])
 
     cohort_base = CohortDefinition(name=f"All diabetes patients{UNIQUE_SUFFIX}", expression=base_expression)
 
     # Create and generate
-    c1 = client.cohorts.create(cohort_base)
-    client.cohorts.generate(c1.id, source_key)
-    client.cohorts.poll_generation(c1.id, source_key)
-    counts1 = client.cohorts.counts(c1.id)
+    c1 = client.cohortdefs.create(cohort_base)
+    client.cohortdefs.generate(c1.id, source_key)
+    client.cohortdefs.poll_generation(c1.id, source_key)
+    counts1 = client.cohortdefs.counts(c1.id)
 
     print(f"Step 1 - All diabetes patients: {counts1[0].subject_count:,}")
 
     # 3. Add male filter
-    male_expression = client.cohorts.add_gender_filter(base_expression, "male")
+    male_expression = client.cohortdefs.add_gender_filter(base_expression, "male")
 
     cohort_male = CohortDefinition(name=f"Male diabetes patients{UNIQUE_SUFFIX}", expression=male_expression)
 
-    c2 = client.cohorts.create(cohort_male)
-    client.cohorts.generate(c2.id, source_key)
-    client.cohorts.poll_generation(c2.id, source_key)
-    counts2 = client.cohorts.counts(c2.id)
+    c2 = client.cohortdefs.create(cohort_male)
+    client.cohortdefs.generate(c2.id, source_key)
+    client.cohortdefs.poll_generation(c2.id, source_key)
+    counts2 = client.cohortdefs.counts(c2.id)
 
     print(f"Step 2 - Male diabetes patients: {counts2[0].subject_count:,}")
 
     # 4. Add age filter (40+)
-    age_expression = client.cohorts.add_age_filter(male_expression, 40)
+    age_expression = client.cohortdefs.add_age_filter(male_expression, 40)
 
     cohort_age = CohortDefinition(name=f"Male diabetes patients 40+{UNIQUE_SUFFIX}", expression=age_expression)
 
-    c3 = client.cohorts.create(cohort_age)
-    client.cohorts.generate(c3.id, source_key)
-    client.cohorts.poll_generation(c3.id, source_key)
-    counts3 = client.cohorts.counts(c3.id)
+    c3 = client.cohortdefs.create(cohort_age)
+    client.cohortdefs.generate(c3.id, source_key)
+    client.cohortdefs.poll_generation(c3.id, source_key)
+    counts3 = client.cohortdefs.counts(c3.id)
 
     print(f"Step 3 - Male diabetes patients 40+: {counts3[0].subject_count:,}")
 
     # 5. Add time window (last 2 years)
-    final_expression = client.cohorts.add_time_window_filter(
+    final_expression = client.cohortdefs.add_time_window_filter(
         age_expression, concept_set_id=0, days_before=730, filter_name="Diabetes in last 2 years"  # diabetes concept set  # 2 years
     )
 
     cohort_final = CohortDefinition(name=f"Male diabetes patients 40+ (last 2 years){UNIQUE_SUFFIX}", expression=final_expression)
 
-    c4 = client.cohorts.create(cohort_final)
-    client.cohorts.generate(c4.id, source_key)
-    client.cohorts.poll_generation(c4.id, source_key)
-    counts4 = client.cohorts.counts(c4.id)
+    c4 = client.cohortdefs.create(cohort_final)
+    client.cohortdefs.generate(c4.id, source_key)
+    client.cohortdefs.poll_generation(c4.id, source_key)
+    counts4 = client.cohortdefs.counts(c4.id)
 
     print(f"Step 4 - Final cohort: {counts4[0].subject_count:,}")
 
@@ -143,7 +143,7 @@ async def example_automated():
     source_key = sources[0].source_key
 
     # Define what we want
-    diabetes_cs = client.cohorts.create_concept_set(201826, "Diabetes Type 2")
+    diabetes_cs = client.cohortdefs.create_concept_set(201826, "Diabetes Type 2")
 
     filters = [
         {"type": "gender", "gender": "male", "name": "Male"},
@@ -152,7 +152,7 @@ async def example_automated():
     ]
 
     # Build incrementally - this does all the work for us
-    results = await client.cohorts.build_incremental_cohort(
+    results = await client.cohortdefs.build_incremental_cohort(
         source_key=source_key, base_name=f"Males 40+ Diabetes{UNIQUE_SUFFIX}", concept_sets=[diabetes_cs], filters=filters
     )
 

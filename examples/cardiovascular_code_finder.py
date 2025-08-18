@@ -149,11 +149,11 @@ async def demo_cohort_creation():
             print("\\n📋 Creating cardiovascular concept sets:")
 
             # Broad cardiovascular disease
-            broad_cs = client.cohorts.create_concept_set(concept_id=194990, name="All Cardiovascular Disease", include_descendants=True)
+            broad_cs = client.cohortdefs.create_concept_set(concept_id=194990, name="All Cardiovascular Disease", include_descendants=True)
             print(f"   ✅ {broad_cs['name']} (includes all subtypes)")
 
             # Specific condition
-            mi_cs = client.cohorts.create_concept_set(concept_id=4329847, name="Myocardial Infarction")
+            mi_cs = client.cohortdefs.create_concept_set(concept_id=4329847, name="Myocardial Infarction")
             print(f"   ✅ {mi_cs['name']} (heart attack only)")
 
             return
@@ -162,7 +162,7 @@ async def demo_cohort_creation():
         print(f"📊 Using data source: {source_key}")
 
         # Create cardiovascular concept set
-        cvd_cs = client.cohorts.create_concept_set(concept_id=194990, name="Cardiovascular Disease")  # Broad cardiovascular disease
+        cvd_cs = client.cohortdefs.create_concept_set(concept_id=194990, name="Cardiovascular Disease")  # Broad cardiovascular disease
 
         print(f"\\n📋 Created concept set: {cvd_cs['name']}")
 
@@ -175,7 +175,7 @@ async def demo_cohort_creation():
             {"type": "time_window", "concept_set_id": 0, "days_before": 1825, "filter_name": "CVD in last 5 years"},
         ]
 
-        results = await client.cohorts.build_incremental_cohort(
+        results = await client.cohortdefs.build_incremental_cohort(
             source_key=source_key, base_name="CVD Study", concept_sets=[cvd_cs], filters=filters
         )
 

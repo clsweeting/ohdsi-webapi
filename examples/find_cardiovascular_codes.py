@@ -128,7 +128,7 @@ async def create_cardiovascular_concept_sets():
 
     # Method 1: Broad cardiovascular disease
     print("Method 1: Broad cardiovascular disease concept set")
-    broad_cs = client.cohorts.create_concept_set(
+    broad_cs = client.cohortdefs.create_concept_set(
         concept_id=194990, name="All Cardiovascular Disease", include_descendants=True  # "Cardiovascular disease"
     )
     print(f"✅ Created: {broad_cs['name']}")
@@ -150,7 +150,7 @@ async def create_cardiovascular_concept_sets():
     # Create individual concept sets for each
     major_concept_sets = []
     for concept_id, name in major_cvd_concepts:
-        cs = client.cohorts.create_concept_set(concept_id, name, include_descendants=True)
+        cs = client.cohortdefs.create_concept_set(concept_id, name, include_descendants=True)
         major_concept_sets.append(cs)
         print(f"✅ Created: {name} (ID: {concept_id})")
 
@@ -197,7 +197,7 @@ async def test_cardiovascular_cohort():
         print(f"📊 Using data source: {source_key}")
 
         # Create cardiovascular concept set
-        cvd_cs = client.cohorts.create_concept_set(concept_id=194990, name="Cardiovascular Disease")  # Broad cardiovascular disease
+        cvd_cs = client.cohortdefs.create_concept_set(concept_id=194990, name="Cardiovascular Disease")  # Broad cardiovascular disease
 
         # Test different cohort approaches
         approaches = [
@@ -218,7 +218,7 @@ async def test_cardiovascular_cohort():
 
         for approach in approaches:
             try:
-                results = await client.cohorts.build_incremental_cohort(
+                results = await client.cohortdefs.build_incremental_cohort(
                     source_key=source_key, base_name=f"CVD Study - {approach['name']}", concept_sets=[cvd_cs], filters=approach["filters"]
                 )
 

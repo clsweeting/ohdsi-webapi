@@ -87,11 +87,12 @@ expression = {
 ```
 
 ### Helper Method Approach (Clean & Simple)
+
 ```python
 # Using helper methods - simple and readable
-diabetes_cs = client.cohorts.create_concept_set(201826, "Type 2 Diabetes")
-expression = client.cohorts.create_base_cohort_expression([diabetes_cs])
-expression = client.cohorts.add_gender_filter(expression, "male")
+diabetes_cs = client.cohortdefs.create_concept_set(201826, "Type 2 Diabetes")
+expression = client.cohortdefs.create_base_cohort_expression([diabetes_cs])
+expression = client.cohortdefs.add_gender_filter(expression, "male")
 ```
 
 ## Core Helper Methods
@@ -102,14 +103,16 @@ expression = client.cohorts.add_gender_filter(expression, "male")
 Creates a concept set for use in cohort definitions.
 
 **Supports both formats:**
+
 ```python
 # Traditional approach
-diabetes_cs = client.cohorts.create_concept_set(201826, "Type 2 Diabetes")
+diabetes_cs = client.cohortdefs.create_concept_set(201826, "Type 2 Diabetes")
 
 # New unified model approach
 from ohdsi_cohort_schemas import Concept
+
 concept = Concept(concept_id=201826, concept_name="Type 2 diabetes mellitus")
-diabetes_cs = client.cohorts.create_concept_set(concept, "")
+diabetes_cs = client.cohortdefs.create_concept_set(concept, "")
 ```
 
 **What it replaces:** Manual construction of nested concept set JSON with proper OMOP concept structure.
@@ -118,15 +121,17 @@ diabetes_cs = client.cohorts.create_concept_set(concept, "")
 Creates the foundation of a cohort expression with primary inclusion criteria.
 
 **Supports both formats:**
+
 ```python
 # Traditional approach
 concept_sets = [diabetes_cs, hypertension_cs]
-expression = client.cohorts.create_base_cohort_expression(concept_sets)
+expression = client.cohortdefs.create_base_cohort_expression(concept_sets)
 
 # New unified model approach  
 from ohdsi_cohort_schemas import ConceptSetExpression
+
 expr_models = [ConceptSetExpression(...), ConceptSetExpression(...)]
-expression = client.cohorts.create_base_cohort_expression(expr_models)
+expression = client.cohortdefs.create_base_cohort_expression(expr_models)
 ```
 
 **What it replaces:** Manual construction of ConceptSets, PrimaryCriteria, and base expression structure.
@@ -138,10 +143,10 @@ Restricts cohort to specific gender.
 
 ```python
 # Add male filter
-male_expression = client.cohorts.add_gender_filter(expression, "male")
+male_expression = client.cohortdefs.add_gender_filter(expression, "male")
 
 # Add female filter  
-female_expression = client.cohorts.add_gender_filter(expression, "female")
+female_expression = client.cohortdefs.add_gender_filter(expression, "female")
 ```
 
 **What it replaces:** Complex inclusion rule with Person criteria and gender concept mapping.
@@ -151,10 +156,10 @@ Restricts cohort to specific age range at index date.
 
 ```python
 # Adults 18-65
-expression = client.cohorts.add_age_filter(expression, min_age=18, max_age=65)
+expression = client.cohortdefs.add_age_filter(expression, min_age=18, max_age=65)
 
 # Adults 18+
-expression = client.cohorts.add_age_filter(expression, min_age=18)
+expression = client.cohortdefs.add_age_filter(expression, min_age=18)
 ```
 
 **What it replaces:** Complex age calculation criteria with date arithmetic and observation period logic.
@@ -166,10 +171,10 @@ Requires events within a specific time window around index date.
 
 ```python
 # Must have hypertension 30 days before to 7 days after diabetes
-expression = client.cohorts.add_time_window_filter(
-    expression, 
+expression = client.cohortdefs.add_time_window_filter(
+    expression,
     concept_set_id=1,  # hypertension concept set
-    days_before=30, 
+    days_before=30,
     days_after=7
 )
 ```
@@ -181,7 +186,7 @@ Requires minimum observation period before/after index date.
 
 ```python
 # Must have 1 year of observation before index
-expression = client.cohorts.add_observation_period_filter(expression, days_before=365)
+expression = client.cohortdefs.add_observation_period_filter(expression, days_before=365)
 ```
 
 **What it replaces:** Observation period criteria with complex date arithmetic.
@@ -191,7 +196,7 @@ Requires minimum continuous observation before index date.
 
 ```python
 # Must have 2 years of prior observation
-expression = client.cohorts.add_prior_observation_filter(expression, min_days=730)
+expression = client.cohortdefs.add_prior_observation_filter(expression, min_days=730)
 ```
 
 **What it replaces:** Prior observation criteria with enrollment period calculations.
@@ -204,7 +209,7 @@ Requires specific types of healthcare visits.
 ```python
 # Must have inpatient visit
 inpatient_visit_id = 9201  # OMOP concept for inpatient visit
-expression = client.cohorts.add_visit_filter(expression, [inpatient_visit_id])
+expression = client.cohortdefs.add_visit_filter(expression, [inpatient_visit_id])
 ```
 
 **What it replaces:** Visit occurrence criteria with concept set mapping and occurrence counting.
@@ -215,8 +220,8 @@ Requires laboratory values or measurements within specific ranges.
 ```python
 # HbA1c > 7.0%
 hba1c_cs_id = 2  # Concept set for HbA1c
-expression = client.cohorts.add_measurement_filter(
-    expression, 
+expression = client.cohortdefs.add_measurement_filter(
+    expression,
     concept_set_id=hba1c_cs_id,
     value_min=7.0,
     unit_concept_id=8554  # Percentage unit
@@ -231,7 +236,7 @@ Requires drug exposure periods (drug eras) of minimum duration.
 ```python
 # Must have 90+ days of metformin exposure
 metformin_cs_id = 3
-expression = client.cohorts.add_drug_era_filter(
+expression = client.cohortdefs.add_drug_era_filter(
     expression,
     concept_set_id=metformin_cs_id,
     min_days=90
@@ -245,7 +250,7 @@ Requires multiple conditions (comorbidities).
 
 ```python
 # Must have both diabetes AND hypertension
-expression = client.cohorts.add_multiple_conditions_filter(
+expression = client.cohortdefs.add_multiple_conditions_filter(
     expression,
     concept_set_ids=[0, 1],  # diabetes and hypertension
     occurrence_type="all"
@@ -262,7 +267,7 @@ Excludes patients with specific conditions.
 ```python
 # Exclude patients with Type 1 diabetes
 type1_diabetes_cs_id = 4
-expression = client.cohorts.add_exclusion_condition(
+expression = client.cohortdefs.add_exclusion_condition(
     expression,
     concept_set_id=type1_diabetes_cs_id
 )
@@ -274,7 +279,7 @@ Excludes patients with specific drug exposures.
 ```python
 # Exclude patients with insulin in past year
 insulin_cs_id = 5
-expression = client.cohorts.add_exclusion_drug(
+expression = client.cohortdefs.add_exclusion_drug(
     expression,
     concept_set_id=insulin_cs_id,
     days_before=365
@@ -287,7 +292,7 @@ Excludes patients with specific procedures.
 ```python
 # Exclude patients with recent surgery
 surgery_cs_id = 6
-expression = client.cohorts.add_exclusion_procedure(
+expression = client.cohortdefs.add_exclusion_procedure(
     expression,
     concept_set_id=surgery_cs_id,
     days_before=90
@@ -299,7 +304,7 @@ Excludes patients who die within specified period after index.
 
 ```python
 # Exclude patients who die within 30 days
-expression = client.cohorts.add_exclusion_death(expression, days_after_index=30)
+expression = client.cohortdefs.add_exclusion_death(expression, days_after_index=30)
 ```
 
 **What exclusions replace:** Complex exclusion criteria with temporal windows and event type mapping.
@@ -311,7 +316,7 @@ Builds and tests cohorts incrementally, applying filters one by one.
 
 ```python
 # Build cohort step by step with intermediate counts
-result = await client.cohorts.build_incremental_cohort(
+result = await client.cohortdefs.build_incremental_cohort(
     source_key="CDM",
     name="Complex Diabetes Cohort",
     base_criteria=[diabetes_cs],
@@ -343,28 +348,29 @@ from ohdsi_webapi.models.cohort import CohortDefinition
 client = WebApiClient("https://your-webapi-url/WebAPI")
 
 # 1. Create concept sets
-diabetes_cs = client.cohorts.create_concept_set(201826, "Type 2 Diabetes")
-hypertension_cs = client.cohorts.create_concept_set(316866, "Hypertension")  
-metformin_cs = client.cohorts.create_concept_set(1503297, "Metformin")
+diabetes_cs = client.cohortdefs.create_concept_set(201826, "Type 2 Diabetes")
+hypertension_cs = client.cohortdefs.create_concept_set(316866, "Hypertension")
+metformin_cs = client.cohortdefs.create_concept_set(1503297, "Metformin")
 
 # 2. Build base expression
-expression = client.cohorts.create_base_cohort_expression([
-    diabetes_cs, 
-    hypertension_cs, 
+expression = client.cohortdefs.create_base_cohort_expression([
+    diabetes_cs,
+    hypertension_cs,
     metformin_cs
 ])
 
 # 3. Add inclusion filters
-expression = client.cohorts.add_gender_filter(expression, "male")
-expression = client.cohorts.add_age_filter(expression, min_age=18, max_age=65)
-expression = client.cohorts.add_prior_observation_filter(expression, min_days=365)
-expression = client.cohorts.add_multiple_conditions_filter(expression, [0, 1], "all")  # diabetes AND hypertension
-expression = client.cohorts.add_drug_era_filter(expression, 2, min_days=90)  # 90+ days metformin
+expression = client.cohortdefs.add_gender_filter(expression, "male")
+expression = client.cohortdefs.add_age_filter(expression, min_age=18, max_age=65)
+expression = client.cohortdefs.add_prior_observation_filter(expression, min_days=365)
+expression = client.cohortdefs.add_multiple_conditions_filter(expression, [0, 1],
+                                                              "all")  # diabetes AND hypertension
+expression = client.cohortdefs.add_drug_era_filter(expression, 2, min_days=90)  # 90+ days metformin
 
 # 4. Add exclusions  
-type1_diabetes_cs = client.cohorts.create_concept_set(201254, "Type 1 Diabetes")
-expression = client.cohorts.add_exclusion_condition(expression, 3)  # exclude T1DM
-expression = client.cohorts.add_exclusion_death(expression, days_after_index=30)
+type1_diabetes_cs = client.cohortdefs.create_concept_set(201254, "Type 1 Diabetes")
+expression = client.cohortdefs.add_exclusion_condition(expression, 3)  # exclude T1DM
+expression = client.cohortdefs.add_exclusion_death(expression, days_after_index=30)
 
 # 5. Create cohort
 cohort = CohortDefinition(
@@ -373,7 +379,7 @@ cohort = CohortDefinition(
     expression=expression
 )
 
-saved_cohort = client.cohorts.create(cohort)
+saved_cohort = client.cohortdefs.create(cohort)
 print(f"Created cohort {saved_cohort.id}: {saved_cohort.name}")
 ```
 
@@ -383,13 +389,14 @@ All helper methods support both traditional dictionaries and new unified models:
 
 ```python
 # Works with dicts (traditional)
-expression_dict = client.cohorts.create_base_cohort_expression([diabetes_cs])
-filtered_dict = client.cohorts.add_gender_filter(expression_dict, "male")
+expression_dict = client.cohortdefs.create_base_cohort_expression([diabetes_cs])
+filtered_dict = client.cohortdefs.add_gender_filter(expression_dict, "male")
 
 # Works with unified models (new)
 from ohdsi_cohort_schemas import CohortExpression, ConceptSetExpression
+
 expr_model = CohortExpression(...)
-filtered_model = client.cohorts.add_gender_filter(expr_model, "male")  # Returns dict
+filtered_model = client.cohortdefs.add_gender_filter(expr_model, "male")  # Returns dict
 ```
 
 ## Benefits of Helper Methods

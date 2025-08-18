@@ -499,20 +499,20 @@ cohort_name = f"Type 2 Diabetes Males Under 40 - {timestamp}"
 cohort_def = CohortDefinition(
     name=cohort_name,
     description="Male patients diagnosed with type 2 diabetes mellitus who are under 40 years old at diagnosis",
-    expression_type="SIMPLE_EXPRESSION", 
+    expression_type="SIMPLE_EXPRESSION",
     expression=cohort_dict  # This works! The validator accepts dicts and falls back gracefully
 )
 
 # Create the cohort via WebAPI
-saved_cohort = client.cohorts.create(cohort_def)
+saved_cohort = client.cohortdefs.create(cohort_def)
 print(f"✅ Created cohort '{cohort_name}' with ID: {saved_cohort.id}")
 ```
 
-### Check your Cohort 
+### Check your Cohort
 
 ```python
 # Use the ID from the saved cohort
-retrieved_cohort = client.cohorts.get(saved_cohort.id)
+retrieved_cohort = client.cohortdefs.get(saved_cohort.id)
 print("Retrieved cohort:")
 print(f"ID: {retrieved_cohort.id}")
 print(f"Name: {retrieved_cohort.name}")
@@ -536,10 +536,10 @@ if retrieved_cohort.expression:
 cohort_def = CohortDefinition(
     name=cohort_name,
     description="Built using proper models!",
-    expressionType="SIMPLE_EXPRESSION", 
+    expressionType="SIMPLE_EXPRESSION",
     expression=cohort_dict  # Dictionary accepted and preserved!
 )
-saved_cohort = client.cohorts.create(cohort_def)
+saved_cohort = client.cohortdefs.create(cohort_def)
 ```
 
 **Backup approaches** (if you can't modify the model):
@@ -648,8 +648,9 @@ concept_set_expr = ConceptSetExpression(items=[item])
 - WebAPI `PrimaryCriteria` → Python `primary_criteria`
 
 **Validation**: Access retrieved data using Python field names:
+
 ```python
-retrieved = client.cohorts.get(cohort_id)
+retrieved = client.cohortdefs.get(cohort_id)
 if retrieved.expression.concept_sets:
     concept_sets = retrieved.expression.concept_sets
     for cs in concept_sets:

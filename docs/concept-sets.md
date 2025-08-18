@@ -19,7 +19,7 @@ Concept Sets are built from OMOP Vocabulary concepts, which include domains such
 - Device — e.g., Pacemaker
 - Specimen, Visit, and other clinical domains
 
-They’re essentially lists of standard concepts that you can later reference in [cohort logic](cohorts.md).
+They’re essentially lists of standard concepts that you can later reference in [cohort logic](cohort-definitions-and-cohorts.md).
 
 
 

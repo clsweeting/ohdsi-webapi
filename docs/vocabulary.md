@@ -23,13 +23,15 @@ A **vocabulary** in OHDSI is simply one of these coding systems. The OMOP Common
 
 This is a key concept that often confuses newcomers:
 
-### 🏷️ Vocabulary = "Where did this code come from?"
+### Vocabulary = "Where did this code come from?"
+
 **Vocabulary** tells you the source coding system:
 - `SNOMED` - from SNOMED CT
 - `RxNorm` - from RxNorm  
 - `ICD10CM` - from ICD-10-CM
 
-### 📁 Domain = "What type of medical concept is this?"
+### Domain = "What type of medical concept is this?"
+
 **Domain** tells you the category for analysis purposes:
 - `Condition` - diseases, symptoms, clinical findings
 - `Drug` - medications and drug products
@@ -46,7 +48,12 @@ Vocabulary: SNOMED    ← "This code comes from SNOMED CT"
 Domain: Condition     ← "This belongs in the Condition table for analysis"
 ```
 
-**Why this matters**: When building cohorts, you search by **domain** ("show me all conditions") but the results might come from multiple **vocabularies** (SNOMED, ICD-10, etc.).
+### Why this matters
+
+When building cohorts, you search by **domain** ("show me all conditions") but the results might come from multiple **vocabularies** (SNOMED, ICD-10, etc.).
+
+-----------------------
+
 
 ## OMOP Database Structure
 
@@ -61,7 +68,7 @@ The vocabulary data lives in these key tables:
 
 ## Working with the Vocabulary API
 
-### Setup
+Setup
 
 ```python
 from ohdsi_webapi import WebApiClient
@@ -107,8 +114,10 @@ for concept in results:
 - `concept_class_id` - Filter by concept class ("Clinical Finding", "Ingredient", etc.)
 - `standard_concept` - "S" for standard concepts (recommended for analysis)
 - `page_size` - Results per page (default: 100). Larger defaults help users discover pagination exists
+- `page` - Which page of results to receive
 
-**💡 Pagination Tip**: The default page size is 100 (not 20) to make pagination more obvious. If you get exactly 100 results, there are likely more - use `page=2` to get the next batch.
+**Pagination Tip**: The default page size is 100 to make pagination more obvious. If you get exactly 100 results, there are likely more - use `page=2` to get the next batch.
+
 
 ### 3. Working with Concept Hierarchies
 
@@ -128,8 +137,9 @@ print(f"Found {len(related)} related concepts")
 ```
 
 **When to use hierarchies:**
-- **Descendants**: When you want to be inclusive (e.g., find all types of diabetes)
-- **Related**: When you want to find mapped or associated concepts
+- Descendants: When you want to be inclusive (e.g., find all types of diabetes)
+- Related: When you want to find mapped or associated concepts
+
 
 ### 4. Bulk Operations
 
@@ -146,8 +156,6 @@ for concept in concepts:
 ```
 
 **⚠️ Important**: Use OMOP **concept IDs** (integers) like `201826`, not source **concept codes** like `"4548-4"`. The concepts() method expects numeric OMOP concept IDs.
-
-**⚠️ WebAPI Compatibility**: The `concepts()` method uses individual `concept()` calls for maximum reliability across all WebAPI versions. While some WebAPI instances support bulk operations, they're inconsistently available, so we use the reliable approach.
 
 **💡 If you have source codes**: Use `lookup_identifiers()` to convert source codes to OMOP concept IDs:
 ```python
@@ -198,13 +206,6 @@ for code, vocab, description in codes_to_lookup:
         print(f"✗ {code} not found in {vocab}")
 ```
 
-**💡 Tip**: Individual searches (Method 2) are more reliable across different WebAPI versions.
-
-```python 
-for result in lookup_results:
-    if result.standard_concept == "S":
-        print(f"Standard concept: {result.concept_id} - {result.concept_name}")
-```
 
 ### 6. Exploring Available Domains and Vocabularies
 
@@ -226,192 +227,4 @@ for vocab in vocabularies:
     print(f"{vocab['vocabularyId']}: {vocab['vocabularyName']}")
 ```
 
-## Standard vs Non-Standard Concepts
 
-This is crucial for analysis:
-
-### ✅ Standard Concepts (`standard_concept = "S"`)
-- **Use these for analysis and cohort building**
-- Consistent across all OMOP databases
-- One "best" concept per medical entity
-- Example: SNOMED concept for "Type 2 diabetes"
-
-### ❌ Non-Standard Concepts
-- Original source codes (ICD-10, local hospital codes, etc.)  
-- **Don't use these for analysis**
-- Map to standard concepts instead
-- Example: ICD-10 code `E11.9` maps to SNOMED `201826`
-
-```python
-# Always filter to standard concepts for analysis
-standard_diabetes = client.vocabulary.search(
-    query="diabetes",
-    standard_concept="S",  # This is key!
-    domain_id="Condition"
-)
-```
-
-## Practical Examples
-
-### Example 1: Building a Diabetes Cohort
-
-```python
-# 1. Search for diabetes concepts
-diabetes_concepts = client.vocabulary.search(
-    query="type 2 diabetes",
-    domain_id="Condition", 
-    standard_concept="S"
-)
-
-# 2. Pick the main concept
-main_diabetes = diabetes_concepts[0]  # Usually the first result
-print(f"Using: {main_diabetes.concept_id} - {main_diabetes.concept_name}")
-
-# 3. Get all related diabetes concepts (more inclusive)
-all_diabetes = client.vocabulary.concept_descendants(main_diabetes.concept_id)
-print(f"Including {len(all_diabetes)} related concepts")
-```
-
-### Example 2: Finding Medications
-
-```python
-# Search for metformin (diabetes medication)
-metformin_drugs = client.vocabulary.search(
-    query="metformin",
-    domain_id="Drug",
-    standard_concept="S"
-)
-
-for drug in metformin_drugs[:5]:  # Show first 5
-    print(f"{drug.concept_id}: {drug.concept_name}")
-    print(f"  Class: {drug.concept_class_id}")
-```
-
-### Example 3: Lab Tests and Measurements
-
-```python
-# Find A1C lab test (diabetes monitoring)
-a1c_tests = client.vocabulary.search(
-    query="hemoglobin a1c",
-    domain_id="Measurement",
-    standard_concept="S"
-)
-
-for test in a1c_tests:
-    print(f"{test.concept_id}: {test.concept_name}")
-```
-
-## Best Practices
-
-### 1. Always Use Standard Concepts for Analysis
-```python
-# ✅ Good - filters to standard concepts
-results = client.vocabulary.search("diabetes", standard_concept="S")
-
-# ❌ Avoid - includes non-standard concepts
-results = client.vocabulary.search("diabetes")  # No filter
-```
-
-### 2. Use concepts() for Multiple Concept Retrieval
-```python
-# ✅ Good - clean, reliable approach
-concepts = client.vocabulary.concepts([201826, 1503297, 4548])
-
-# ❌ Verbose - manual looping when concepts() method exists
-concepts = []
-for concept_id in [201826, 1503297, 4548]:
-    concepts.append(client.vocabulary.concept(concept_id))
-```
-
-### 3. Use Hierarchies Appropriately
-```python
-# For inclusive cohorts (recommended)
-diabetes_concept_id = 201826
-all_diabetes_types = client.vocabulary.concept_descendants(diabetes_concept_id)
-
-# Use all descendants in your cohort definition
-concept_set = {
-    "id": 0,
-    "name": "All Diabetes Types", 
-    "expression": {
-        "items": [{"concept": {"conceptId": diabetes_concept_id, "includeDescendants": True}}]
-    }
-}
-```
-
-## Common Workflows
-
-### Building a Concept Set for Research
-
-1. **Search** for your concept of interest
-2. **Review** the results and pick the most appropriate standard concept
-3. **Check descendants** to see if you want to include more specific concepts
-4. **Validate** by looking at the concept names and classifications
-
-```python
-# Complete workflow example
-def build_diabetes_concept_set():
-    # Step 1: Search
-    results = client.vocabulary.search("type 2 diabetes", domain_id="Condition", standard_concept="S")
-    
-    # Step 2: Review and select
-    main_concept = results[0]  # Assume first is best match
-    print(f"Selected: {main_concept.concept_name}")
-    
-    # Step 3: Check descendants
-    descendants = client.vocabulary.concept_descendants(main_concept.concept_id)
-    print(f"This will include {len(descendants)} related concepts")
-    
-    # Step 4: Create concept set definition
-    concept_set = {
-        "id": 0,
-        "name": "Type 2 Diabetes",
-        "expression": {
-            "items": [{
-                "concept": {
-                    "conceptId": main_concept.concept_id,
-                    "includeDescendants": True  # Include all subtypes
-                }
-            }]
-        }
-    }
-    
-    return concept_set
-```
-
-## API Method Reference
-
-For a complete mapping of REST endpoints to Python methods, see the **[Supported Endpoints](supported_endpoints.md#📖-vocabulary--concepts)** documentation.
-
-The vocabulary service follows predictable naming patterns and maintains backwards compatibility with legacy method names.
-
-### Method Details
-
-All methods return Pydantic models with proper type hints and validation. Most methods support caching via the `@cached_method` decorator for improved performance.
-
-## Error Handling
-
-```python
-from ohdsi_webapi.exceptions import WebApiError
-
-try:
-    concept = client.vocabulary.concept(999999999)  # Invalid ID
-except WebApiError as e:
-    print(f"API Error: {e.status_code} - {e.message}")
-    # Handle gracefully - maybe use a default concept or ask user to try again
-```
-
-## Performance Tips
-
-1. **Cache frequently used concepts** in your application
-2. **Use bulk operations** when fetching multiple concepts
-3. **Apply filters early** to reduce result set sizes
-4. **Reuse search results** instead of re-searching
-
-## Next Steps
-
-- **[Concept Sets](concept_sets.md)**: Learn how to group concepts for analysis
-- **[Cohorts](cohorts.md)**: Use concepts to define patient populations  
-- **[Caching](caching.md)**: Optimize performance for repeated API calls
-
-Need help? The OHDSI community is very welcoming to newcomers. Check out the [OHDSI Forums](https://forums.ohdsi.org/) for questions and discussions.

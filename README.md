@@ -159,7 +159,7 @@ See the docs directory for deeper guides:
 - [Vocabulary & Concepts](docs/vocabulary.md) - concept lookup, search, and hierarchies
 - [Finding Codes](docs/finding-codes.md) - techniques for discovering OMOP concept codes
 - [Concept Sets](docs/concept-sets.md) - creating and managing concept collections
-- [Cohorts](docs/cohorts.md) - cohort definition management and generation
+- [Cohort Definitions & Cohorts](docs/cohort-definitions-and-cohorts.md) - cohort definition, and generating cohorts
 - [Cohort Building](docs/cohort-building.md) - advanced cohort construction patterns
 - [Supported Endpoints](docs/supported_endpoints.md) - which WebAPI endpoints are supported
 - [Live testing](docs/live-testing.md) - testing with actual WebAPI
